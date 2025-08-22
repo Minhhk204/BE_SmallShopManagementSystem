@@ -33,7 +33,9 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             if (user == null)
                 return Unauthorized("Sai thông tin đăng nhập");
-
+            // 🔑 Check user có active không
+            if (!user.IsActive)
+                return Unauthorized("Tài khoản đã bị khóa hoặc chưa được kích hoạt");
             // Lấy role của user
             var roles = _context.UserRoles
                 .Where(ur => ur.UserId == user.Id)

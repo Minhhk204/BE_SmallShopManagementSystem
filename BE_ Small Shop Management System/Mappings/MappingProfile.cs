@@ -10,12 +10,12 @@ namespace BE__Small_Shop_Management_System.Mappings
         public MappingProfile()
         {
             // User mapping
-            CreateMap<User, UserDto>();           // Entity → DTO
+            CreateMap<User, UserDto>().ReverseMap();           // Entity → DTO
             CreateMap<UserRegisterDto, User>();   // Register DTO → Entity
             CreateMap<UserLoginDto, User>();      // Login DTO → Entity
 
             // Product mapping
-            CreateMap<Product, ProductDto>();
+            CreateMap<Product, ProductDto>().ReverseMap();
 
             // Order mapping
             CreateMap<Order, OrderDto>();

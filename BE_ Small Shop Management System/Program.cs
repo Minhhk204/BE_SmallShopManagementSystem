@@ -1,9 +1,12 @@
 ﻿using BE__Small_Shop_Management_System.DataContext;
+using BE__Small_Shop_Management_System.Mappings;
+using BE__Small_Shop_Management_System.Middleware;
 using BE__Small_Shop_Management_System.Repositories;
 using BE__Small_Shop_Management_System.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 namespace BE__Small_Shop_Management_System
@@ -18,10 +21,40 @@ namespace BE__Small_Shop_Management_System
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            
 
-           
+            builder.Services.AddEndpointsApiExplorer();
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My Web API", Version = "v1" });
+
+                // Định nghĩa cấu hình bảo mật cho Swagger
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer"
+                });
+
+                // Áp dụng cấu hình bảo mật cho tất cả các API
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+            });
+
 
             // Đăng ký DbContext với DI, lấy connection string từ appsettings.json
             builder.Services.AddDbContext<AppDbContext>(options =>
@@ -49,8 +82,9 @@ namespace BE__Small_Shop_Management_System
             });
 
 
-            builder.Services.AddAutoMapper(typeof(Program));
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddScoped<IUnitOfWork, BE__Small_Shop_Management_System.UnitOfWork.UnitOfWork>();
+            builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<Services.JwtService>();
@@ -58,6 +92,9 @@ namespace BE__Small_Shop_Management_System
 
             builder.Services.AddSwaggerGen();
             var app = builder.Build();
+
+            // Middleware log request/response
+            app.UseRequestLogging();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -67,7 +104,8 @@ namespace BE__Small_Shop_Management_System
 
             app.UseHttpsRedirection();
 
-            app.UseAuthentication(); 
+            app.UseAuthentication();
+            app.UseMiddleware<ActiveUserMiddleware>(); // check IsActive
             app.UseAuthorization();
 
 

@@ -12,6 +12,7 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
         public IGenericRepository<Role> Roles { get; private set; }
 
         public IProductRepository Products { get; }
+        public IUserRoleRepository UserRoles { get; private set; }
 
         public UnitOfWork(AppDbContext context)
         {

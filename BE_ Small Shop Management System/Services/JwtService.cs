@@ -21,13 +21,18 @@ namespace BE__Small_Shop_Management_System.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Name, user.Username ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
             };
 
-            foreach (var role in roles)
+            // Đảm bảo roles không null
+            if (roles != null)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                foreach (var role in roles)
+                {
+                    if (!string.IsNullOrWhiteSpace(role))
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                }
             }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
