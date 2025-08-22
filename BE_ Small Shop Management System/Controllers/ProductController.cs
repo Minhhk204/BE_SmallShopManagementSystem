@@ -91,7 +91,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             if (product.SellerId != userId && !userRoles.Contains("Admin"))
                 return Forbid();
 
-            //await _unitOfWork.Products.DeleteAsync(product);
+            _unitOfWork.Products.Delete(product);
             await _unitOfWork.CompleteAsync();
             return NoContent();
         }

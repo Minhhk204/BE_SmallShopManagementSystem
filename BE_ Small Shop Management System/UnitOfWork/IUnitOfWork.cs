@@ -8,6 +8,7 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
         IUserRepository Users { get; }
         IProductRepository Products { get; }
         IGenericRepository<Role> Roles { get; }
+        IUserRoleRepository UserRoles { get; }
         Task<int> CompleteAsync();
     }
 }
