@@ -84,6 +84,8 @@ namespace BE__Small_Shop_Management_System.Controllers
             await _unitOfWork.CompleteAsync();
             return Ok(new { message = "Tài khoản đã được mở khóa", user });
         }
+        
+        [HttpPost("assign-role")] 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto dto)
         {
@@ -110,6 +112,5 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(new { message = $"Đã gán role '{role.Name}' cho user '{user.Username}'" });
         }
-
     }
 }
