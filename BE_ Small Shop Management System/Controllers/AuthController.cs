@@ -22,21 +22,78 @@ namespace BE__Small_Shop_Management_System.Controllers
             _context = context;
             _configuration = configuration;
         }
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] UserRegisterDto registerDto)
+        {
+            // Check email hợp lệ
+            if (!IsValidEmail(registerDto.Email))
+            {
+                return BadRequest("Email không hợp lệ");
+            }
+            // Check trùng username/email
+            if (_context.Users.Any(u => u.Username == registerDto.Username || u.Email == registerDto.Email))
+            {
+                return BadRequest("Tên đăng nhập hoặc email đã tồn tại");
+            }
+
+            // Hash mật khẩu
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
+
+            var user = new User
+            {
+                Username = registerDto.Username,
+                Email = registerDto.Email,
+                PasswordHash = passwordHash,
+                IsActive = true // cho phép login ngay
+            };
+
+            _context.Users.Add(user);
+            _context.SaveChanges();
+
+            // Gán role mặc định là "Customer"
+            var customerRole = _context.Roles.FirstOrDefault(r => r.Name == "Customer");
+            if (customerRole == null)
+            {
+                // Nếu chưa có role Customer thì tạo mới
+                customerRole = new Role { Name = "Customer" };
+                _context.Roles.Add(customerRole);
+                _context.SaveChanges();
+            }
+
+            _context.UserRoles.Add(new UserRole
+            {
+                UserId = user.Id,
+                RoleId = customerRole.Id
+            });
+            _context.SaveChanges();
+
+            return Ok("Đăng ký thành công");
+        }
 
         [HttpPost("login")]
         public IActionResult Login([FromBody] UserLoginDto loginDto)
         {
-            // Kiểm tra user
-            var user = _context.Users
-                .Where(u => u.Username == loginDto.Username && u.PasswordHash == loginDto.Password)
-                .FirstOrDefault();
+            // Check email hợp lệ
+            if (!IsValidEmail(loginDto.Email))
+            {
+                return BadRequest("Email không hợp lệ");
+            }
+            // Tìm user theo email
+            var user = _context.Users.FirstOrDefault(u => u.Email == loginDto.Email);
 
             if (user == null)
                 return Unauthorized("Sai thông tin đăng nhập");
-            // 🔑 Check user có active không
+
+            // Kiểm tra mật khẩu
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash);
+            if (!isPasswordValid)
+                return Unauthorized("Sai thông tin đăng nhập");
+
+            // Kiểm tra active
             if (!user.IsActive)
                 return Unauthorized("Tài khoản đã bị khóa hoặc chưa được kích hoạt");
-            // Lấy role của user
+
+            // Lấy role
             var roles = _context.UserRoles
                 .Where(ur => ur.UserId == user.Id)
                 .Select(ur => ur.Role.Name)
@@ -45,8 +102,17 @@ namespace BE__Small_Shop_Management_System.Controllers
             // Sinh JWT
             var token = GenerateJwtToken(user, roles);
 
-            return Ok(new { token });
+            return Ok(new
+            {
+                message = "Đăng nhập thành công",
+                username = user.Username,
+                email = user.Email,
+                roles = roles,
+                token = token
+            });
         }
+
+
 
         private string GenerateJwtToken(User user, List<string> roles)
         {
@@ -75,6 +141,20 @@ namespace BE__Small_Shop_Management_System.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+
+
+        }
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

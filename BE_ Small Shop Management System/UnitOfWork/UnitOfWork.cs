@@ -20,6 +20,8 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             Users = new UserRepository(_context);
             Roles = new GenericRepository<Role>(_context);
             Products = new ProductRepository(_context);
+            UserRoles = new UserRoleRepository(_context);
+
         }
 
         public async Task<int> CompleteAsync()
