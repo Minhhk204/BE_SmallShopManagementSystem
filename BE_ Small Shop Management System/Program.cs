@@ -88,6 +88,17 @@ namespace BE__Small_Shop_Management_System
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<Services.JwtService>();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngularClient",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:4200") // cho phép Angular
+                              .AllowAnyHeader()
+                              .AllowAnyMethod()
+                              .AllowCredentials(); // nếu dùng cookie/token
+                    });
+            });
 
 
             builder.Services.AddSwaggerGen();
@@ -104,6 +115,8 @@ namespace BE__Small_Shop_Management_System
 
             app.UseHttpsRedirection();
 
+            // Bật CORS trước khi MapControllers
+            app.UseCors("AllowAngularClient");
             app.UseAuthentication();
             app.UseMiddleware<ActiveUserMiddleware>(); // check IsActive
             app.UseAuthorization();
