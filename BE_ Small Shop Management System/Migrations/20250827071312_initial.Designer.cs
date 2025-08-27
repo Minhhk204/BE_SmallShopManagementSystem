@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE__Small_Shop_Management_System.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250821045940_Initial")]
-    partial class Initial
+    [Migration("20250827071312_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -183,6 +183,23 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.ToTable("Payments");
                 });
 
+            modelBuilder.Entity("BE__Small_Shop_Management_System.Models.Permission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permissions");
+                });
+
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -230,9 +247,6 @@ namespace BE__Small_Shop_Management_System.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -240,6 +254,21 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("BE__Small_Shop_Management_System.Models.RolePermission", b =>
+                {
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.SystemLog", b =>
@@ -278,9 +307,6 @@ namespace BE__Small_Shop_Management_System.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -292,13 +318,33 @@ namespace BE__Small_Shop_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("RoleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RoleId");
+
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("BE__Small_Shop_Management_System.Models.UserPermission", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("UserPermissions");
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.UserRole", b =>
@@ -321,13 +367,13 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasOne("BE__Small_Shop_Management_System.Models.User", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BE__Small_Shop_Management_System.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Customer");
@@ -340,7 +386,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasOne("BE__Small_Shop_Management_System.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -362,13 +408,13 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasOne("BE__Small_Shop_Management_System.Models.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BE__Small_Shop_Management_System.Models.Product", "Product")
                         .WithMany("OrderItems")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Order");
@@ -381,7 +427,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasOne("BE__Small_Shop_Management_System.Models.Order", "Order")
                         .WithOne("Payment")
                         .HasForeignKey("BE__Small_Shop_Management_System.Models.Payment", "OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Order");
@@ -402,6 +448,25 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.Navigation("Seller");
                 });
 
+            modelBuilder.Entity("BE__Small_Shop_Management_System.Models.RolePermission", b =>
+                {
+                    b.HasOne("BE__Small_Shop_Management_System.Models.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BE__Small_Shop_Management_System.Models.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.SystemLog", b =>
                 {
                     b.HasOne("BE__Small_Shop_Management_System.Models.User", "User")
@@ -411,18 +476,46 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("BE__Small_Shop_Management_System.Models.User", b =>
+                {
+                    b.HasOne("BE__Small_Shop_Management_System.Models.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("BE__Small_Shop_Management_System.Models.UserPermission", b =>
+                {
+                    b.HasOne("BE__Small_Shop_Management_System.Models.Permission", "Permission")
+                        .WithMany("UserPermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BE__Small_Shop_Management_System.Models.User", "User")
+                        .WithMany("UserPermissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.UserRole", b =>
                 {
                     b.HasOne("BE__Small_Shop_Management_System.Models.Role", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BE__Small_Shop_Management_System.Models.User", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Role");
@@ -442,6 +535,13 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.Navigation("Payment");
                 });
 
+            modelBuilder.Entity("BE__Small_Shop_Management_System.Models.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserPermissions");
+                });
+
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.Product", b =>
                 {
                     b.Navigation("OrderItems");
@@ -449,12 +549,16 @@ namespace BE__Small_Shop_Management_System.Migrations
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.Role", b =>
                 {
+                    b.Navigation("RolePermissions");
+
                     b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.User", b =>
                 {
                     b.Navigation("Orders");
+
+                    b.Navigation("UserPermissions");
 
                     b.Navigation("UserRoles");
                 });

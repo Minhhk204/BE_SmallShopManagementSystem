@@ -26,7 +26,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             {
                 Id = r.Id,
                 Name = r.Name,
-                Description = r.Description
+             
             }).ToList();
 
             return Ok(roleDtos);
@@ -45,7 +45,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             {
                 Id = role.Id,
                 Name = role.Name,
-                Description = role.Description
+                
             });
         }
 
@@ -56,7 +56,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             var role = new Role
             {
                 Name = roleDto.Name,
-                Description = roleDto.Description
+                
             };
 
             await _unitOfWork.Roles.AddAsync(role);
@@ -77,7 +77,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return NotFound();
 
             role.Name = roleDto.Name;
-            role.Description = roleDto.Description;
+           
 
             _unitOfWork.Roles.Update(role);
             await _unitOfWork.CompleteAsync();
