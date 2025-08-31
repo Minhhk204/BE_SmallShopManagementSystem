@@ -1,6 +1,9 @@
-﻿using BE__Small_Shop_Management_System.DTOs;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Models;
+using BE__Small_Shop_Management_System.Services;
 using BE__Small_Shop_Management_System.UnitOfWork;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,94 +13,149 @@ namespace BE__Small_Shop_Management_System.Controllers
     [ApiController]
     public class RoleController : ControllerBase
     {
+        private readonly RolePermissionService _service;
         private readonly IUnitOfWork _unitOfWork;
-
-        public RoleController(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
+        public RoleController(RolePermissionService service, IUnitOfWork unitOfWork)
+        { _service = service;
+          _unitOfWork = unitOfWork;
         }
 
-        // GET: api/role
+        // Lấy list permission của role (true/false)
+        [HttpGet("{roleId}/permissions")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetPermissionsOfRole(int roleId)
+        {
+            var map = await _service.GetPermissionMapAsync(roleId);
+            return Ok(new { roleId, permissions = map });
+        }
+
+        // Gán quyền cho Role
+        [HttpPost("{roleId}/assign-permissions")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignPermissionsToRole(int roleId, [FromBody] AssignPermissionsRequest request)
+        {
+            // lấy current permissions của role
+            var currentPermissions = await _unitOfWork.RolePermissionRepository.GetPermissionsByRoleIdAsync(roleId);
+            var currentIds = currentPermissions.Select(p => p.Id).ToHashSet();
+
+            // lặp qua request
+            foreach (var item in request.Permissions)
+            {
+                if (item.Granted && !currentIds.Contains(item.Id))
+                {
+                    // thêm mới
+                    await _unitOfWork.RolePermissionRepository.AssignAsync(roleId, new[] { item.Id });
+                }
+                else if (!item.Granted && currentIds.Contains(item.Id))
+                {
+                    // gỡ bỏ
+                    await _unitOfWork.RolePermissionRepository.RemoveAsync(roleId, new[] { item.Id });
+                }
+            }
+
+            await _unitOfWork.CompleteAsync();
+
+            // lấy all permissions để trả về kèm trạng thái
+            var allPermissions = await _unitOfWork.PermissionRepository.GetAllPermissionsAsync();
+            var updated = await _unitOfWork.RolePermissionRepository.GetPermissionsByRoleIdAsync(roleId);
+            var grantedIds = updated.Select(p => p.Id).ToHashSet();
+
+            var result = allPermissions.Select(p => new
+            {
+                id = p.Id,
+                name = p.Name,
+                module = p.Module,
+                description = p.Description,
+                granted = grantedIds.Contains(p.Id)
+            });
+
+            return Ok(new
+            {
+                message = "Updated role permissions",
+                roleId,
+                permissions = result
+            });
+        }
+        
+        // ===== READ ALL =====
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RoleDto>>> GetRoles()
+        [Authorize(Policy = PermissionConstants.Roles.View)]
+        public async Task<IActionResult> GetAll()
         {
-            var roles = await _unitOfWork.Roles.GetAllAsync();
-            var roleDtos = roles.Select(r => new RoleDto
+            var roles = await _unitOfWork.RoleRepository.GetAllAsync();
+            return Ok(roles.Select(r => new
             {
-                Id = r.Id,
-                Name = r.Name,
-             
-            }).ToList();
-
-            return Ok(roleDtos);
+                r.Id,
+                r.Name
+            }));
         }
 
-        // GET: api/role/5
+        // ===== READ by Id =====
         [HttpGet("{id}")]
-        public async Task<ActionResult<RoleDto>> GetRole(int id)
+        [Authorize(Policy = PermissionConstants.Roles.View)]
+        public async Task<IActionResult> GetById(int id)
         {
-            var role = await _unitOfWork.Roles.GetByIdAsync(id);
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
+            if (role == null) return NotFound();
+            return Ok(role);
+        }
 
-            if (role == null)
-                return NotFound();
+        // ===== CREATE =====
+        [HttpPost]
+        [Authorize(Policy = PermissionConstants.Roles.Create)]
+        public async Task<IActionResult> Create([FromBody] CreateRoleDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return BadRequest("Role name is required");
 
-            return Ok(new RoleDto
+            var role = new Role
             {
-                Id = role.Id,
-                Name = role.Name,
-                
+                Name = dto.Name
+            };
+
+            await _unitOfWork.RoleRepository.AddAsync(role);
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(new
+            {
+                message = "Role created successfully",
+                roleId = role.Id,
+                name = role.Name
             });
         }
 
-        // POST: api/role
-        [HttpPost]
-        public async Task<ActionResult<RoleDto>> CreateRole([FromBody] RoleDto roleDto)
-        {
-            var role = new Role
-            {
-                Name = roleDto.Name,
-                
-            };
-
-            await _unitOfWork.Roles.AddAsync(role);
-            await _unitOfWork.CompleteAsync();
-
-            roleDto.Id = role.Id;
-
-            return CreatedAtAction(nameof(GetRole), new { id = role.Id }, roleDto);
-        }
-
-        // PUT: api/role/5
+        // ===== UPDATE =====
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRole(int id, [FromBody] RoleDto roleDto)
+        [Authorize(Policy = PermissionConstants.Roles.Update)]
+        public async Task<IActionResult> Update(int id, [FromBody] Role update)
         {
-            var role = await _unitOfWork.Roles.GetByIdAsync(id);
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
+            if (role == null) return NotFound();
 
-            if (role == null)
-                return NotFound();
+            role.Name = update.Name;
 
-            role.Name = roleDto.Name;
-           
-
-            _unitOfWork.Roles.Update(role);
+            _unitOfWork.RoleRepository.Update(role);
             await _unitOfWork.CompleteAsync();
 
-            return NoContent();
+            return Ok(role);
         }
 
-        // DELETE: api/role/5
+        // ===== DELETE =====
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRole(int id)
+        [Authorize(Policy = PermissionConstants.Roles.Delete)]
+        public async Task<IActionResult> Delete(int id)
         {
-            var role = await _unitOfWork.Roles.GetByIdAsync(id);
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
+            if (role == null) return NotFound();
 
-            if (role == null)
-                return NotFound();
-
-            _unitOfWork.Roles.Delete(role);
+            _unitOfWork.RoleRepository.Delete(role);
             await _unitOfWork.CompleteAsync();
 
-            return NoContent();
+            return Ok(new { message = "Role deleted successfully", roleId = id });
         }
     }
 }
+
+   
+
+

@@ -8,8 +8,6 @@
         public string PasswordHash { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
 
-        public int? RoleId { get; set; }
-        public Role? Role { get; set; }
         public  ICollection<UserRole> UserRoles { get; set; }
         public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();

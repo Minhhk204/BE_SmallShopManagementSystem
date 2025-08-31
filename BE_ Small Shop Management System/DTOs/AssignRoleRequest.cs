@@ -1,8 +1,7 @@
 ﻿namespace BE__Small_Shop_Management_System.DTOs
 {
-    public class AssignRoleDto
+    public class AssignRoleRequest
     {
-        public int UserId { get; set; }
         public int RoleId { get; set; }
     }
 }

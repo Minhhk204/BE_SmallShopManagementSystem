@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE__Small_Shop_Management_System.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250827071312_initial")]
-    partial class initial
+    [Migration("20250831195245_initial4")]
+    partial class initial4
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -191,13 +191,213 @@ namespace BE__Small_Shop_Management_System.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.ToTable("Permissions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5605),
+                            Description = "Users View",
+                            Module = "Users",
+                            Name = "Users.View"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5643),
+                            Description = "Users Create",
+                            Module = "Users",
+                            Name = "Users.Create"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5648),
+                            Description = "Users Update",
+                            Module = "Users",
+                            Name = "Users.Update"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5693),
+                            Description = "Users Lock",
+                            Module = "Users",
+                            Name = "Users.Lock"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5697),
+                            Description = "Users Unlock",
+                            Module = "Users",
+                            Name = "Users.Unlock"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5707),
+                            Description = "Roles View",
+                            Module = "Roles",
+                            Name = "Roles.View"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5710),
+                            Description = "Roles Create",
+                            Module = "Roles",
+                            Name = "Roles.Create"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5713),
+                            Description = "Roles Update",
+                            Module = "Roles",
+                            Name = "Roles.Update"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5720),
+                            Description = "Roles Delete",
+                            Module = "Roles",
+                            Name = "Roles.Delete"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5728),
+                            Description = "Permissions View",
+                            Module = "Permissions",
+                            Name = "Permissions.View"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5733),
+                            Description = "Permissions Delete",
+                            Module = "Permissions",
+                            Name = "Permissions.Delete"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5741),
+                            Description = "Products View",
+                            Module = "Products",
+                            Name = "Products.View"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5746),
+                            Description = "Products Create",
+                            Module = "Products",
+                            Name = "Products.Create"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5750),
+                            Description = "Products Update",
+                            Module = "Products",
+                            Name = "Products.Update"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5757),
+                            Description = "Products Delete",
+                            Module = "Products",
+                            Name = "Products.Delete"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5764),
+                            Description = "Orders View",
+                            Module = "Orders",
+                            Name = "Orders.View"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5771),
+                            Description = "Orders Create",
+                            Module = "Orders",
+                            Name = "Orders.Create"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5776),
+                            Description = "Orders Update",
+                            Module = "Orders",
+                            Name = "Orders.Update"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5779),
+                            Description = "Orders Delete",
+                            Module = "Orders",
+                            Name = "Orders.Delete"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5783),
+                            Description = "Orders Process",
+                            Module = "Orders",
+                            Name = "Orders.Process"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5794),
+                            Description = "Inventory View",
+                            Module = "Inventory",
+                            Name = "Inventory.View"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5798),
+                            Description = "Inventory Import",
+                            Module = "Inventory",
+                            Name = "Inventory.Import"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5804),
+                            Description = "Reports ViewDashboard",
+                            Module = "Reports",
+                            Name = "Reports.ViewDashboard"
+                        });
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.Product", b =>
@@ -254,6 +454,23 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Seller"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Customer"
+                        });
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.RolePermission", b =>
@@ -269,6 +486,123 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("RolePermissions");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 1
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 2
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 3
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 4
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 5
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 6
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 7
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 8
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 9
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 10
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 11
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 12
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 13
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 14
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 15
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 16
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 17
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 18
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 19
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 20
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 21
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 22
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 23
+                        });
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.SystemLog", b =>
@@ -291,6 +625,9 @@ namespace BE__Small_Shop_Management_System.Migrations
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -318,18 +655,23 @@ namespace BE__Small_Shop_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("RoleId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoleId");
-
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "admin@system.com",
+                            IsActive = true,
+                            PasswordHash = "$2a$11$3d.3w3tEaGeeyYaYob5XL.LkT3VMYqrujiPbKBGDolK9sUwXr.H/a",
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.UserPermission", b =>
@@ -360,6 +702,13 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 1,
+                            RoleId = 1
+                        });
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.CartItem", b =>
@@ -474,15 +823,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BE__Small_Shop_Management_System.Models.User", b =>
-                {
-                    b.HasOne("BE__Small_Shop_Management_System.Models.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId");
-
-                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.UserPermission", b =>

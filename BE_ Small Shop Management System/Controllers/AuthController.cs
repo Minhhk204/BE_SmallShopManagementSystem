@@ -73,61 +73,71 @@ namespace BE__Small_Shop_Management_System.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] UserLoginDto loginDto)
         {
-            // Check email hợp lệ
             if (!IsValidEmail(loginDto.Email))
-            {
                 return BadRequest("Email không hợp lệ");
-            }
-            // Tìm user theo email
+
             var user = _context.Users.FirstOrDefault(u => u.Email == loginDto.Email);
+            if (user == null) return Unauthorized("Sai thông tin đăng nhập");
 
-            if (user == null)
+            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 return Unauthorized("Sai thông tin đăng nhập");
 
-            // Kiểm tra mật khẩu
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash);
-            if (!isPasswordValid)
-                return Unauthorized("Sai thông tin đăng nhập");
-
-            // Kiểm tra active
             if (!user.IsActive)
                 return Unauthorized("Tài khoản đã bị khóa hoặc chưa được kích hoạt");
 
-            // Lấy role
+            // Roles
             var roles = _context.UserRoles
                 .Where(ur => ur.UserId == user.Id)
                 .Select(ur => ur.Role.Name)
                 .ToList();
 
+            // Permissions (Role + User)
+            var rolePermissions = _context.UserRoles
+                .Where(ur => ur.UserId == user.Id)
+                .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission.Name));
+
+            var directPermissions = _context.UserPermissions
+                .Where(up => up.UserId == user.Id)
+                .Select(up => up.Permission.Name);
+
+            var permissions = rolePermissions
+                .Union(directPermissions)
+                .Distinct()
+                .ToList();
+
             // Sinh JWT
-            var token = GenerateJwtToken(user, roles);
+            var token = GenerateJwtToken(user, roles, permissions);
 
             return Ok(new
             {
                 message = "Đăng nhập thành công",
                 username = user.Username,
                 email = user.Email,
-                roles = roles,
-                token = token
+                roles,
+                permissions,
+                token
             });
         }
 
 
 
-        private string GenerateJwtToken(User user, List<string> roles)
+        private string GenerateJwtToken(User user, List<string> roles, List<string> permissions)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email)
-        };
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim(ClaimTypes.Email, user.Email)
+    };
 
+            // roles
             foreach (var role in roles)
-            {
                 claims.Add(new Claim(ClaimTypes.Role, role));
-            }
+
+            // permissions
+            foreach (var permission in permissions)
+                claims.Add(new Claim("permission", permission));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -141,8 +151,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-
-
         }
         private bool IsValidEmail(string email)
         {

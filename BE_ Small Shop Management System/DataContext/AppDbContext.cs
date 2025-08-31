@@ -31,6 +31,8 @@ namespace BE__Small_Shop_Management_System.DataContext
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+            DbSeeder.Seed(modelBuilder);
             // ==== User - Role (N-N) - QUAN TRỌNG: Sửa lỗi cascade ====
             modelBuilder.Entity<UserRole>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });
@@ -134,6 +136,9 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);
+
+
+
         }
     }
 

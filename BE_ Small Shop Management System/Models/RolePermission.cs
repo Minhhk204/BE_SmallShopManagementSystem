@@ -7,5 +7,6 @@
 
         public int PermissionId { get; set; }
         public Permission Permission { get; set; } = null!;
+        
     }
 }

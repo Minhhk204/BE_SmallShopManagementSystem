@@ -8,20 +8,35 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
     {
         private readonly AppDbContext _context;
 
-        public IUserRepository Users { get; private set; }
-        public IGenericRepository<Role> Roles { get; private set; }
+        public IUserRepository UserRepository { get; }
+        public IRoleRepository RoleRepository { get; }
+        public IPermissionRepository PermissionRepository { get; }
+        public IUserPermissionRepository UserPermissionRepository { get; }
+        public IRolePermissionRepository RolePermissionRepository { get; }
+        public ISystemLogRepository SystemLogRepository { get; }
+        public IProductRepository ProductRepository { get; }
+        public IUserRoleRepository UserRoleRepository { get; }
+        public UnitOfWork(
+            AppDbContext context,
+            IUserRepository userRepository,
+            IRoleRepository roleRepository,
+            IPermissionRepository permissionRepository,
+            IUserPermissionRepository userPermissionRepository,
+            IRolePermissionRepository rolePermissionRepository,
+             ISystemLogRepository systemLogRepository,
+             IProductRepository productRepository,
+             IUserRoleRepository userRoleRepository)
 
-        public IProductRepository Products { get; }
-        public IUserRoleRepository UserRoles { get; private set; }
-
-        public UnitOfWork(AppDbContext context)
         {
             _context = context;
-            Users = new UserRepository(_context);
-            Roles = new GenericRepository<Role>(_context);
-            Products = new ProductRepository(_context);
-            UserRoles = new UserRoleRepository(_context);
-
+            UserRepository = userRepository;
+            RoleRepository = roleRepository;
+            PermissionRepository = permissionRepository;
+            UserPermissionRepository = userPermissionRepository;
+            RolePermissionRepository = rolePermissionRepository;
+            SystemLogRepository = systemLogRepository;
+            ProductRepository = productRepository;
+            UserRoleRepository = userRoleRepository;
         }
 
         public async Task<int> CompleteAsync()
@@ -34,4 +49,6 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             _context.Dispose();
         }
     }
+
+
 }

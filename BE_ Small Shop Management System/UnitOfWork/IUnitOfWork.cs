@@ -5,10 +5,14 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
 {
     public interface IUnitOfWork : IDisposable
     {
-        IUserRepository Users { get; }
-        IProductRepository Products { get; }
-        IGenericRepository<Role> Roles { get; }
-        IUserRoleRepository UserRoles { get; }
+        IUserRepository UserRepository { get; }
+        IRoleRepository RoleRepository { get; }
+        IPermissionRepository PermissionRepository { get; }
+        IUserPermissionRepository UserPermissionRepository { get; }
+        IRolePermissionRepository RolePermissionRepository { get; }
+        ISystemLogRepository SystemLogRepository { get; }
+        IProductRepository ProductRepository { get; }
+        IUserRoleRepository UserRoleRepository { get; }
         Task<int> CompleteAsync();
     }
 }
