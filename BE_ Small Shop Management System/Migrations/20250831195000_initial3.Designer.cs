@@ -4,6 +4,7 @@ using BE__Small_Shop_Management_System.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE__Small_Shop_Management_System.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250831195000_initial3")]
+    partial class initial3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -203,6 +206,9 @@ namespace BE__Small_Shop_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -214,186 +220,209 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5605),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8361),
                             Description = "Users View",
                             Module = "Users",
-                            Name = "Users.View"
+                            Name = "Users.View",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5643),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8488),
                             Description = "Users Create",
                             Module = "Users",
-                            Name = "Users.Create"
+                            Name = "Users.Create",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5648),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8494),
                             Description = "Users Update",
                             Module = "Users",
-                            Name = "Users.Update"
+                            Name = "Users.Update",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5693),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8500),
                             Description = "Users Lock",
                             Module = "Users",
-                            Name = "Users.Lock"
+                            Name = "Users.Lock",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5697),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8506),
                             Description = "Users Unlock",
                             Module = "Users",
-                            Name = "Users.Unlock"
+                            Name = "Users.Unlock",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5707),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8518),
                             Description = "Roles View",
                             Module = "Roles",
-                            Name = "Roles.View"
+                            Name = "Roles.View",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5710),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8524),
                             Description = "Roles Create",
                             Module = "Roles",
-                            Name = "Roles.Create"
+                            Name = "Roles.Create",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5713),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8529),
                             Description = "Roles Update",
                             Module = "Roles",
-                            Name = "Roles.Update"
+                            Name = "Roles.Update",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5720),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8535),
                             Description = "Roles Delete",
                             Module = "Roles",
-                            Name = "Roles.Delete"
+                            Name = "Roles.Delete",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 10,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5728),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8543),
                             Description = "Permissions View",
                             Module = "Permissions",
-                            Name = "Permissions.View"
+                            Name = "Permissions.View",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 11,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5733),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8550),
                             Description = "Permissions Delete",
                             Module = "Permissions",
-                            Name = "Permissions.Delete"
+                            Name = "Permissions.Delete",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 12,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5741),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8560),
                             Description = "Products View",
                             Module = "Products",
-                            Name = "Products.View"
+                            Name = "Products.View",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 13,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5746),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8567),
                             Description = "Products Create",
                             Module = "Products",
-                            Name = "Products.Create"
+                            Name = "Products.Create",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 14,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5750),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8572),
                             Description = "Products Update",
                             Module = "Products",
-                            Name = "Products.Update"
+                            Name = "Products.Update",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 15,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5757),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8585),
                             Description = "Products Delete",
                             Module = "Products",
-                            Name = "Products.Delete"
+                            Name = "Products.Delete",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 16,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5764),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8596),
                             Description = "Orders View",
                             Module = "Orders",
-                            Name = "Orders.View"
+                            Name = "Orders.View",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 17,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5771),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8613),
                             Description = "Orders Create",
                             Module = "Orders",
-                            Name = "Orders.Create"
+                            Name = "Orders.Create",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 18,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5776),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8620),
                             Description = "Orders Update",
                             Module = "Orders",
-                            Name = "Orders.Update"
+                            Name = "Orders.Update",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 19,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5779),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8625),
                             Description = "Orders Delete",
                             Module = "Orders",
-                            Name = "Orders.Delete"
+                            Name = "Orders.Delete",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 20,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5783),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8631),
                             Description = "Orders Process",
                             Module = "Orders",
-                            Name = "Orders.Process"
+                            Name = "Orders.Process",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 21,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5794),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8640),
                             Description = "Inventory View",
                             Module = "Inventory",
-                            Name = "Inventory.View"
+                            Name = "Inventory.View",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 22,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5798),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8645),
                             Description = "Inventory Import",
                             Module = "Inventory",
-                            Name = "Inventory.Import"
+                            Name = "Inventory.Import",
+                            PermissionId = 0
                         },
                         new
                         {
                             Id = 23,
-                            CreatedAt = new DateTime(2025, 8, 31, 19, 52, 44, 36, DateTimeKind.Utc).AddTicks(5804),
+                            CreatedAt = new DateTime(2025, 8, 31, 19, 49, 58, 214, DateTimeKind.Utc).AddTicks(8678),
                             Description = "Reports ViewDashboard",
                             Module = "Reports",
-                            Name = "Reports.ViewDashboard"
+                            Name = "Reports.ViewDashboard",
+                            PermissionId = 0
                         });
                 });
 
@@ -666,7 +695,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                             Id = 1,
                             Email = "admin@system.com",
                             IsActive = true,
-                            PasswordHash = "$2a$11$3d.3w3tEaGeeyYaYob5XL.LkT3VMYqrujiPbKBGDolK9sUwXr.H/a",
+                            PasswordHash = "$2a$11$Ql3xZU.a1M6UewPwpx/eQ.iBaBI0po6D1oWaJE7UVhipy/8I7obda",
                             Username = "admin"
                         });
                 });

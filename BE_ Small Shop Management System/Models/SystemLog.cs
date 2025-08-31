@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public int? UserId { get; set; }  // Có thể null (nếu là action hệ thống)
+        public string? UserName { get; set; }
         public User? User { get; set; }
 
         public string Action { get; set; } = null!;   // "Create Product", "Login", "Update Order"...

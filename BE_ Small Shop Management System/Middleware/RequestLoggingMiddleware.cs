@@ -1,5 +1,6 @@
 ﻿using BE__Small_Shop_Management_System.DataContext;
 using BE__Small_Shop_Management_System.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -16,13 +17,14 @@ namespace BE__Small_Shop_Management_System.Middleware
 
         public async Task InvokeAsync(HttpContext context, AppDbContext db)
         {
-            // Lấy thông tin cơ bản
-            var ip = context.Connection.RemoteIpAddress?.ToString();
-            var method = context.Request.Method;
-            var path = context.Request.Path;
-            var userId = GetUserIdFromToken(context);
+            var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                     ?? context.Connection.RemoteIpAddress?.ToString();
 
-            // Đọc request body (copy để không ảnh hưởng pipeline)
+            var method = context.Request.Method;
+            var path = context.Request.Path + context.Request.QueryString;
+            var (userId, userName) = GetUserInfoFromContext(context);
+
+            // Đọc request body (buffer để không chặn pipeline)
             context.Request.EnableBuffering();
             string body = "";
             using (var reader = new StreamReader(context.Request.Body, Encoding.UTF8, true, 1024, true))
@@ -31,38 +33,70 @@ namespace BE__Small_Shop_Management_System.Middleware
                 context.Request.Body.Position = 0;
             }
 
-            // Gọi middleware tiếp theo
+            // Headers
+            var headers = string.Join("\n", context.Request.Headers.Select(h => $"{h.Key}: {h.Value}"));
+
             await _next(context);
 
-            // Response status
             var statusCode = context.Response.StatusCode;
 
-            // Lưu vào DB (SystemLog)
             var log = new SystemLog
             {
                 UserId = userId,
+                UserName = userName,
+                User = userId.HasValue ? await db.Users.FindAsync(userId) : null,
                 Action = $"{method} {path} ({statusCode})",
-                Data = $"IP: {ip}\nBody: {body}",
+                Data = $"IP: {ip}\nHeaders:\n{headers}\nBody: {body}",
                 CreatedAt = DateTime.UtcNow
             };
 
+
             db.SystemLogs.Add(log);
             await db.SaveChangesAsync();
+
         }
 
-        private int? GetUserIdFromToken(HttpContext context)
+        private (int? userId, string? userName) GetUserInfoFromContext(HttpContext context)
         {
+            // Nếu đã authenticate => lấy từ Claims
             if (context.User.Identity is { IsAuthenticated: true })
             {
                 var idClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
-                if (idClaim != null && int.TryParse(idClaim.Value, out int userId))
-                {
-                    return userId;
-                }
+                var nameClaim = context.User.FindFirst(ClaimTypes.Name);
+
+                int? userId = null;
+                if (idClaim != null && int.TryParse(idClaim.Value, out int parsedId))
+                    userId = parsedId;
+
+                return (userId, nameClaim?.Value);
             }
-            return null;
+
+            // Nếu chưa có => thử lấy trực tiếp từ JWT
+            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+
+                var idClaim = jwtToken.Claims.FirstOrDefault(c =>
+                    c.Type == ClaimTypes.NameIdentifier || c.Type == "sub" || c.Type == "id");
+
+                var nameClaim = jwtToken.Claims.FirstOrDefault(c =>
+                    c.Type == ClaimTypes.Name || c.Type == "username" || c.Type == "unique_name");
+
+                int? userId = null;
+                if (idClaim != null && int.TryParse(idClaim.Value, out int parsedId))
+                    userId = parsedId;
+
+                return (userId, nameClaim?.Value);
+            }
+
+            return (null, null);
         }
     }
+
 
 }
 

@@ -1,7 +1,9 @@
-﻿using BE__Small_Shop_Management_System.DataContext;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.DataContext;
 using BE__Small_Shop_Management_System.Mappings;
 using BE__Small_Shop_Management_System.Middleware;
 using BE__Small_Shop_Management_System.Repositories;
+using BE__Small_Shop_Management_System.Services;
 using BE__Small_Shop_Management_System.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -84,14 +86,34 @@ namespace BE__Small_Shop_Management_System
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddScoped<IUnitOfWork, BE__Small_Shop_Management_System.UnitOfWork.UnitOfWork>();
+            builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
             builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<Services.JwtService>();
+            builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+            builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+            builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
+            builder.Services.AddScoped<ISystemLogRepository, SystemLogRepository>();
+
+            // Services
+            builder.Services.AddScoped<RolePermissionService>();
+            builder.Services.AddScoped<UserPermissionService>();
+            builder.Services.AddScoped<JwtService>();
+
+            builder.Services.AddAuthorization(options =>
+            {
+                foreach (var perm in PermissionConstants.All())
+                {
+                    // mỗi policy yêu cầu claim "permission" tương ứng
+                    options.AddPolicy(perm, policy => policy.RequireClaim("permission", perm));
+                }
+            });
 
 
             builder.Services.AddSwaggerGen();
             var app = builder.Build();
+
+           
 
             // Middleware log request/response
             app.UseRequestLogging();
@@ -105,10 +127,13 @@ namespace BE__Small_Shop_Management_System
             app.UseHttpsRedirection();
 
             app.UseAuthentication();
+            app.UseMiddleware<RequestLoggingMiddleware>();
+
             app.UseMiddleware<ActiveUserMiddleware>(); // check IsActive
+
             app.UseAuthorization();
 
-
+           
             app.MapControllers();
 
             app.Run();

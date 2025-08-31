@@ -14,6 +14,10 @@ namespace BE__Small_Shop_Management_System.Mappings
             CreateMap<UserRegisterDto, User>();   // Register DTO → Entity
             CreateMap<UserLoginDto, User>();      // Login DTO → Entity
 
+            CreateMap<Role, RoleDto>().ReverseMap();
+            CreateMap<Permission, PermissionDto>().ReverseMap();
+            CreateMap<SystemLog, SystemLogDto>().ReverseMap();
+
             // Product mapping
             CreateMap<Product, ProductDto>().ReverseMap();
 

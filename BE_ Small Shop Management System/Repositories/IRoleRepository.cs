@@ -4,6 +4,8 @@ namespace BE__Small_Shop_Management_System.Repositories
 {
     public interface IRoleRepository : IGenericRepository<Role>
     {
-        // Có thể thêm hàm riêng cho Role nếu muốn
+        Task<Role?> GetWithPermissionsAsync(int roleId);
+        Task AssignPermissionsAsync(int roleId, IEnumerable<int> permissionIds);
+        Task RemovePermissionAsync(int roleId, int permissionId);
     }
 }
