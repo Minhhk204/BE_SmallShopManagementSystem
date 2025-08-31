@@ -126,6 +126,8 @@ namespace BE__Small_Shop_Management_System
 
             app.UseHttpsRedirection();
 
+            // Bật CORS trước khi MapControllers
+            app.UseCors("AllowAngularClient");
             app.UseAuthentication();
             app.UseMiddleware<RequestLoggingMiddleware>();
 
