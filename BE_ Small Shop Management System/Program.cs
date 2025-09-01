@@ -109,6 +109,15 @@ namespace BE__Small_Shop_Management_System
                 }
             });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngularClient", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200") // Angular dev server
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
 
             builder.Services.AddSwaggerGen();
             var app = builder.Build();
