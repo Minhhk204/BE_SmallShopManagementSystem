@@ -125,11 +125,11 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             var jwtSettings = _configuration.GetSection("Jwt");
             var claims = new List<Claim>
-    {
+        {
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
         new Claim(ClaimTypes.Name, user.Username),
         new Claim(ClaimTypes.Email, user.Email)
-    };
+        };
 
             // roles
             foreach (var role in roles)

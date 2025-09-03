@@ -106,28 +106,24 @@ namespace BE__Small_Shop_Management_System.Controllers
             await _unitOfWork.CompleteAsync();
             return Ok(new { message = "Tài khoản đã được mở khóa", user });
         }
-
+        // ===== READ ALL =====
         [HttpGet]
         [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> GetAll()
         {
             var users = await _unitOfWork.UserRepository.GetAllAsync();
-            return Ok(users.Select(u => new {
-                u.Id,
-                u.Username,
-                u.Email,
-                u.IsActive
-            }));
-        }
 
-        // ===== CREATE =====
-        [HttpPost]
-        [Authorize(Policy = PermissionConstants.Users.Create)]
-        public async Task<IActionResult> Create([FromBody] User user)
-        {
-            await _unitOfWork.UserRepository.AddAsync(user);
-            await _unitOfWork.CompleteAsync();
-            return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+            var result = users.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Email = u.Email,
+                //Role = u.UserRoles != null && u.UserRoles.Any()
+                //    ? string.Join(", ", u.UserRoles.Select(ur => ur.Role.Name))
+                //    : ""
+            });
+
+            return Ok(result);
         }
 
         // ===== READ by Id =====
@@ -137,42 +133,123 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
             if (user == null) return NotFound();
-            return Ok(user);
+
+            var result = new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                //Role = user.UserRoles != null && user.UserRoles.Any()
+                //    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
+                //    : ""
+            };
+
+            return Ok(result);
         }
+
+        [HttpGet("search")]
+        [Authorize(Policy = PermissionConstants.Users.View)]
+        public async Task<IActionResult> Search([FromQuery] string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return BadRequest(new { message = "Keyword is required" });
+
+            var users = await _unitOfWork.UserRepository.FindAsync(u =>
+                u.Username.ToLower().Contains(keyword.ToLower()));
+
+            if (!users.Any())
+                return NotFound(new { message = "No users found matching the keyword" });
+
+            var result = users.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Email = u.Email,
+                //Role = u.UserRoles != null && u.UserRoles.Any()
+                //    ? string.Join(", ", u.UserRoles.Select(ur => ur.Role.Name))
+                //    : ""
+            });
+
+            return Ok(result);
+        }
+
+
+        // ===== CREATE =====
+        //[HttpPost]
+        //[Authorize(Policy = PermissionConstants.Users.Create)]
+        //public async Task<IActionResult> Create([FromBody] UserDto dto)
+        //{
+        //    if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Email))
+        //        return BadRequest("Username and Email are required");
+
+        //    // Kiểm tra trùng Username
+        //    var exists = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username);
+        //    if (exists)
+        //        return BadRequest("Username already exists");
+
+        //    var user = new User
+        //    {
+        //        Username = dto.Username,
+        //        Email = dto.Email,
+        //        IsActive = true
+        //    };
+
+        //    await _unitOfWork.UserRepository.AddAsync(user);
+        //    await _unitOfWork.CompleteAsync();
+
+        //    var result = new UserDto
+        //    {
+        //        Id = user.Id,
+        //        Username = user.Username,
+        //        Email = user.Email,
+        //        Role = ""
+        //    };
+
+        //    return Ok(new
+        //    {
+        //        message = "User created successfully",
+        //        data = result
+        //    });
+        //}
 
         // ===== UPDATE =====
         [HttpPut("{id}")]
         [Authorize(Policy = PermissionConstants.Users.Update)]
-        public async Task<IActionResult> Update(int id, [FromBody] User update)
+        public async Task<IActionResult> Update(int id, [FromBody] UserDto dto)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
             if (user == null) return NotFound();
 
-            user.Username = update.Username;
-            user.Email = update.Email;
-            user.IsActive = update.IsActive;
+            // Check trùng username nhưng bỏ qua chính nó
+            var exists = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username && u.Id != id);
+            if (exists)
+                return BadRequest("Username already exists");
+
+            user.Username = dto.Username;
+            user.Email = dto.Email;
 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();
 
-            return Ok(user);
+            var result = new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                //Role = user.UserRoles != null && user.UserRoles.Any()
+                //    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
+                //    : ""
+            };
+
+            return Ok(new
+            {
+                message = "User updated successfully",
+                data = result
+            });
         }
 
-        // ===== DELETE =====
-        //[HttpDelete("{id}")]
-        //[Authorize(Policy = PermissionConstants.Users.Delete)]
-        //public async Task<IActionResult> Delete(int id)
-        //{
-        //    var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-        //    if (user == null) return NotFound();
-
-        //    _unitOfWork.UserRepository.Delete(user);
-        //    await _unitOfWork.CompleteAsync();
-
-        //    return NoContent();
-        //}
-        // Gán role cho user
         [HttpPost("{userId}/assign-role")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignRole(int userId, [FromBody] AssignRoleRequest request)
         {
             await _unitOfWork.UserRoleRepository.AssignRoleAsync(userId, request.RoleId);
@@ -186,6 +263,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Xoá role khỏi user
         [HttpDelete("{userId}/remove-role/{roleId}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveRole(int userId, int roleId)
         {
             await _unitOfWork.UserRoleRepository.RemoveRoleAsync(userId, roleId);

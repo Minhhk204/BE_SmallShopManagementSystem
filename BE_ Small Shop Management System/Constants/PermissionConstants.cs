@@ -5,7 +5,7 @@
         public static class Users
         {
             public const string View = "Users.View";
-            public const string Create = "Users.Create";
+            //public const string Create = "Users.Create";
             public const string Update = "Users.Update";
             //public const string Delete = "Users.Delete";
             public const string Lock = "Users.Lock";

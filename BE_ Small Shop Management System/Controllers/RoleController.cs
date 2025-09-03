@@ -99,6 +99,27 @@ namespace BE__Small_Shop_Management_System.Controllers
             if (role == null) return NotFound();
             return Ok(role);
         }
+        // ===== SEARCH =====
+        [HttpGet("search")]
+        [Authorize(Policy = PermissionConstants.Roles.View)]
+        public async Task<IActionResult> Search([FromQuery] string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return BadRequest(new { message = "Keyword is required" });
+
+            // Dùng FindAsync trong repository
+            var roles = await _unitOfWork.RoleRepository.FindAsync(r =>
+                r.Name.ToLower().Contains(keyword.ToLower()));
+
+            if (!roles.Any())
+                return NotFound(new { message = "No roles found matching the keyword" });
+
+            return Ok(roles.Select(r => new
+            {
+                r.Id,
+                r.Name
+            }));
+        }
 
         // ===== CREATE =====
         [HttpPost]
@@ -107,6 +128,11 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
                 return BadRequest("Role name is required");
+
+            // 🔥 Kiểm tra trùng tên trước khi thêm
+            var exists = await _unitOfWork.RoleRepository.ExistsAsync(r => r.Name == dto.Name);
+            if (exists)
+                return BadRequest("Role name already exists");
 
             var role = new Role
             {
@@ -124,21 +150,36 @@ namespace BE__Small_Shop_Management_System.Controllers
             });
         }
 
+
         // ===== UPDATE =====
         [HttpPut("{id}")]
         [Authorize(Policy = PermissionConstants.Roles.Update)]
         public async Task<IActionResult> Update(int id, [FromBody] Role update)
         {
+            if (string.IsNullOrWhiteSpace(update.Name))
+                return BadRequest("Role name is required");
+
             var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
             if (role == null) return NotFound();
+
+            // 🔥 Kiểm tra xem tên role mới có bị trùng với role khác không
+            var exists = await _unitOfWork.RoleRepository.ExistsAsync(r => r.Name == update.Name && r.Id != id);
+            if (exists)
+                return BadRequest("Role name already exists");
 
             role.Name = update.Name;
 
             _unitOfWork.RoleRepository.Update(role);
             await _unitOfWork.CompleteAsync();
 
-            return Ok(role);
+            return Ok(new
+            {
+                message = "Role updated successfully",
+                roleId = role.Id,
+                name = role.Name
+            });
         }
+
 
         // ===== DELETE =====
         [HttpDelete("{id}")]
