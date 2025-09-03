@@ -65,6 +65,12 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(rp => rp.PermissionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<RolePermission>()
+                .HasOne(rp => rp.Role)
+                .WithMany(r => r.RolePermissions)
+                .HasForeignKey(rp => rp.RoleId)
+                .OnDelete(DeleteBehavior.Cascade); // 🔥 khi xóa Role thì tự động xóa RolePermission
+
             // ==== User - Permission (N-N) ====
             modelBuilder.Entity<UserPermission>()
                 .HasKey(up => new { up.UserId, up.PermissionId });
