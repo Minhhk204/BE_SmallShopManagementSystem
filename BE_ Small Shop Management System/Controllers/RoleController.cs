@@ -154,7 +154,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         // ===== UPDATE =====
         [HttpPut("{id}")]
         [Authorize(Policy = PermissionConstants.Roles.Update)]
-        public async Task<IActionResult> Update(int id, [FromBody] Role update)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateRoleDto update)
         {
             if (string.IsNullOrWhiteSpace(update.Name))
                 return BadRequest("Role name is required");
