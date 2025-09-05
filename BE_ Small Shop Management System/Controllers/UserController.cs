@@ -118,6 +118,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 Id = u.Id,
                 Username = u.Username,
                 Email = u.Email,
+                IsActive = u.IsActive
                 //Role = u.UserRoles != null && u.UserRoles.Any()
                 //    ? string.Join(", ", u.UserRoles.Select(ur => ur.Role.Name))
                 //    : ""
