@@ -11,5 +11,8 @@ namespace BE__Small_Shop_Management_System.Repositories
 
         Task RemoveAsync(int roleId, IEnumerable<int> permissionIds);  // xóa nhiều quyền
         Task RemoveAsync(int roleId, int permissionId);                // xóa 1 quyền
+
+        Task RemoveAllByRoleIdAsync(int roleId);
+
     }
 }

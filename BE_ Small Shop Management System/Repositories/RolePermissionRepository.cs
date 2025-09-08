@@ -68,6 +68,14 @@ namespace BE__Small_Shop_Management_System.Repositories
 
             _context.RolePermissions.RemoveRange(entities);
         }
+
+        public async Task RemoveAllByRoleIdAsync(int roleId)
+        {
+            var rolePermissions = _context.RolePermissions.Where(rp => rp.RoleId == roleId);
+            _context.RolePermissions.RemoveRange(rolePermissions);
+            await _context.SaveChangesAsync();
+        }
+
     }
 
 }
