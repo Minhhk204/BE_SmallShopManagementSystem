@@ -122,7 +122,7 @@ namespace BE__Small_Shop_Management_System
             builder.Services.AddSwaggerGen();
             var app = builder.Build();
 
-           
+
 
             // Middleware log request/response
             app.UseRequestLogging();
@@ -144,7 +144,7 @@ namespace BE__Small_Shop_Management_System
 
             app.UseAuthorization();
 
-           
+
             app.MapControllers();
 
             app.Run();

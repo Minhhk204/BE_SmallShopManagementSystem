@@ -34,8 +34,11 @@ namespace BE__Small_Shop_Management_System.DataContext
                 Username = "admin",
                 Email = "admin@system.com",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-                IsActive = true
+                IsActive = true,
+                FullName = "Nguyen Van Minh",
+                PhoneNumber = "0123456789"
             });
+
 
             modelBuilder.Entity<UserRole>().HasData(new UserRole { UserId = 1, RoleId = 1 });
 

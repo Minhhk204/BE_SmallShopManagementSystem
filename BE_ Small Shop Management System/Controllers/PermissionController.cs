@@ -15,16 +15,15 @@ namespace BE__Small_Shop_Management_System.Controllers
     public class PermissionController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        //private readonly IMapper _mapper;
 
         public PermissionController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            //_mapper = mapper;
         }
-        /// <summary>
+       
         /// Lấy toàn bộ permissions trong hệ thống
-        /// </summary>
         [HttpGet]
         [Authorize(Policy = PermissionConstants.Permissions.View)]
         public async Task<IActionResult> GetAll()
@@ -40,9 +39,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             return Ok(result);
         }
 
-        /// <summary>
         /// Lấy chi tiết permission theo id
-        /// </summary>
         [HttpGet("{id}")]
         [Authorize(Policy = PermissionConstants.Permissions.View)]
         public async Task<IActionResult> GetById(int id)
@@ -58,6 +55,36 @@ namespace BE__Small_Shop_Management_System.Controllers
                 Description = permission.Description ?? string.Empty
             });
         }
+
+
+        /// Tìm kiếm permission theo keyword
+        [HttpGet("search")]
+        [Authorize(Policy = PermissionConstants.Permissions.View)]
+        public async Task<IActionResult> Search([FromQuery] string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return BadRequest(new { message = "Keyword is required" });
+
+            var permissions = await _unitOfWork.PermissionRepository.FindAsync(p =>
+                p.Name.ToLower().Contains(keyword.ToLower()) ||
+                p.Module.ToLower().Contains(keyword.ToLower()) ||
+                (p.Description != null && p.Description.ToLower().Contains(keyword.ToLower()))
+            );
+
+            if (!permissions.Any())
+                return NotFound(new { message = "No permissions found matching the keyword" });
+
+            var result = permissions.Select(p => new PermissionDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Module = p.Module,
+                Description = p.Description ?? string.Empty
+            });
+
+            return Ok(result);
+        }
+
 
         /// <summary>
         /// Tạo permission mới
@@ -101,17 +128,17 @@ namespace BE__Small_Shop_Management_System.Controllers
         /// <summary>
         /// Xóa permission
         /// </summary>
-        [HttpDelete("{id}")]
-        [Authorize(Policy = PermissionConstants.Permissions.Delete)] 
-        public async Task<IActionResult> Delete(int id)
-        {
-            var permission = await _unitOfWork.PermissionRepository.GetByIdAsync(id);
-            if (permission == null) return NotFound();
+        //[HttpDelete("{id}")]
+        //[Authorize(Policy = PermissionConstants.Permissions.Delete)]
+        //public async Task<IActionResult> Delete(int id)
+        //{
+        //    var permission = await _unitOfWork.PermissionRepository.GetByIdAsync(id);
+        //    if (permission == null) return NotFound();
 
-            _unitOfWork.PermissionRepository.Delete(permission);
-            await _unitOfWork.CompleteAsync();
+        //    _unitOfWork.PermissionRepository.Delete(permission);
+        //    await _unitOfWork.CompleteAsync();
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
     }
 }
