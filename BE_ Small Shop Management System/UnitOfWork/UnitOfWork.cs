@@ -23,9 +23,9 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             IPermissionRepository permissionRepository,
             IUserPermissionRepository userPermissionRepository,
             IRolePermissionRepository rolePermissionRepository,
-             ISystemLogRepository systemLogRepository,
-             IProductRepository productRepository,
-             IUserRoleRepository userRoleRepository)
+            ISystemLogRepository systemLogRepository,
+            IProductRepository productRepository,
+            IUserRoleRepository userRoleRepository)
 
         {
             _context = context;

@@ -9,8 +9,16 @@ namespace BE__Small_Shop_Management_System.Mappings
     {
         public MappingProfile()
         {
-            // User mapping
-            CreateMap<User, UserDto>().ReverseMap();           // Entity → DTO
+               
+            CreateMap<User, UserDto>()  // User mapping
+           .ForMember(dest => dest.RoleName,
+               opt => opt.MapFrom(src =>
+                src.UserRoles != null && src.UserRoles.Any()
+                ? string.Join(", ", src.UserRoles.Select(ur => ur.Role.Name))
+                : ""
+                 ))
+               .ReverseMap(); // Entity → DTO
+
             CreateMap<UserRegisterDto, User>();   // Register DTO → Entity
             CreateMap<UserLoginDto, User>();      // Login DTO → Entity
 

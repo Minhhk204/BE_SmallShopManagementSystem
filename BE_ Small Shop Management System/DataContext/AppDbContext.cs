@@ -48,6 +48,7 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId)
                 .OnDelete(DeleteBehavior.NoAction);
+            
 
             // ==== Role - Permission (N-N) ====
             modelBuilder.Entity<RolePermission>()

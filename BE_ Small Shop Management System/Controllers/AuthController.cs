@@ -3,10 +3,12 @@ using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -22,19 +24,32 @@ namespace BE__Small_Shop_Management_System.Controllers
             _context = context;
             _configuration = configuration;
         }
-        [HttpPost("register")]
-        public IActionResult Register([FromBody] UserRegisterDto registerDto)
+        private bool IsValidPhoneNumber(string phone)
         {
-            // Check email hợp lệ
+            if (string.IsNullOrWhiteSpace(phone)) return false;
+
+            // Regex: bắt đầu bằng 0, theo sau là 9 số (tổng cộng 10 số)
+            var regex = new Regex(@"^0\d{9}$");
+            return regex.IsMatch(phone);
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto registerDto)
+        {
             if (!IsValidEmail(registerDto.Email))
-            {
                 return BadRequest("Email không hợp lệ");
-            }
-            // Check trùng username/email
-            if (_context.Users.Any(u => u.Username == registerDto.Username || u.Email == registerDto.Email))
-            {
-                return BadRequest("Tên đăng nhập hoặc email đã tồn tại");
-            }
+
+            if (!string.IsNullOrEmpty(registerDto.PhoneNumber) && !IsValidPhoneNumber(registerDto.PhoneNumber))
+                return BadRequest("Số điện thoại không hợp lệ (phải có 10 chữ số, bắt đầu bằng 0)");
+
+            // Check trùng username/email/phone
+            var exists = await _context.Users.AnyAsync(u =>
+                u.Username == registerDto.Username ||
+                u.Email == registerDto.Email ||
+                (!string.IsNullOrEmpty(registerDto.PhoneNumber) && u.PhoneNumber == registerDto.PhoneNumber)
+            );
+            if (exists)
+                return BadRequest("Tên đăng nhập, email hoặc số điện thoại đã tồn tại");
 
             // Hash mật khẩu
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
@@ -43,31 +58,44 @@ namespace BE__Small_Shop_Management_System.Controllers
             {
                 Username = registerDto.Username,
                 Email = registerDto.Email,
+                FullName = registerDto.FullName ?? string.Empty,
+                PhoneNumber = registerDto.PhoneNumber ?? string.Empty,
                 PasswordHash = passwordHash,
-                IsActive = true // cho phép login ngay
+                IsActive = true
             };
 
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
 
-            // Gán role mặc định là "Customer"
-            var customerRole = _context.Roles.FirstOrDefault(r => r.Name == "Customer");
+            // Gán role mặc định = Customer
+            var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
             if (customerRole == null)
             {
-                // Nếu chưa có role Customer thì tạo mới
                 customerRole = new Role { Name = "Customer" };
-                _context.Roles.Add(customerRole);
-                _context.SaveChanges();
+                await _context.Roles.AddAsync(customerRole);
+                await _context.SaveChangesAsync();
             }
 
-            _context.UserRoles.Add(new UserRole
+            await _context.UserRoles.AddAsync(new UserRole
             {
                 UserId = user.Id,
                 RoleId = customerRole.Id
             });
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return Ok("Đăng ký thành công");
+            return Ok(new
+            {
+                message = "Đăng ký thành công",
+                user = new
+                {
+                    user.Id,
+                    user.Username,
+                    user.Email,
+                    user.FullName,
+                    user.PhoneNumber,
+                    Role = customerRole.Name
+                }
+            });
         }
 
         [HttpPost("login")]
@@ -81,6 +109,9 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 return Unauthorized("Sai thông tin đăng nhập");
+
+            if (user.IsDeleted)
+                return Unauthorized("Tài khoản không tồn tại");
 
             if (!user.IsActive)
                 return Unauthorized("Tài khoản đã bị khóa hoặc chưa được kích hoạt");

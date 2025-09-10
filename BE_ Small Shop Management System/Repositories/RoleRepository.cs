@@ -1,6 +1,7 @@
 ﻿using BE__Small_Shop_Management_System.DataContext;
 using BE__Small_Shop_Management_System.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace BE__Small_Shop_Management_System.Repositories
 {
@@ -40,6 +41,26 @@ namespace BE__Small_Shop_Management_System.Repositories
                 _context.RolePermissions.Remove(rp);
                 await _context.SaveChangesAsync();
             }
+        }
+        public async Task<IEnumerable<Role>> GetAllWithUsersAsync()
+        {
+            return await _context.Roles
+         .Include(r => r.UserRoles)
+         .ToListAsync();
+        }
+
+        public async Task<Role?> GetByIdWithUsersAsync(int id)
+        {
+            return await _context.Roles
+                .Include(r => r.UserRoles)
+                .FirstOrDefaultAsync(r => r.Id == id);
+        }
+        public async Task<IEnumerable<Role>> FindWithUsersAsync(Expression<Func<Role, bool>> predicate)
+        {
+            return await _context.Roles
+                .Include(r => r.UserRoles)
+                .Where(predicate)
+                .ToListAsync();
         }
     }
 
