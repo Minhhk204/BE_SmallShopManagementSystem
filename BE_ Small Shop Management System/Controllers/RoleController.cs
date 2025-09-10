@@ -89,23 +89,27 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(new
             {
-                message = "Updated role permissions",
+                message = "Quyền vai trò được cập nhật",
                 roleId,
                 permissions = result
             });
         }
-        
+
         // ===== READ ALL =====
         [HttpGet]
         [Authorize(Policy = PermissionConstants.Roles.View)]
         public async Task<IActionResult> GetAll()
         {
-            var roles = await _unitOfWork.RoleRepository.GetAllAsync();
-            return Ok(roles.Select(r => new
+            var roles = await _unitOfWork.RoleRepository.GetAllWithUsersAsync();
+            var result = roles.Select(r => new RoleDto
             {
-                r.Id,
-                r.Name
-            }));
+                Id = r.Id,
+                Name = r.Name,
+                Description = null,
+                UserCount = r.UserRoles.Count
+            });
+
+            return Ok(result);
         }
 
         // ===== READ by Id =====
@@ -113,31 +117,46 @@ namespace BE__Small_Shop_Management_System.Controllers
         [Authorize(Policy = PermissionConstants.Roles.View)]
         public async Task<IActionResult> GetById(int id)
         {
-            var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
+            var role = await _unitOfWork.RoleRepository.GetByIdWithUsersAsync(id);
             if (role == null) return NotFound();
-            return Ok(role);
+
+            var dto = new RoleDto
+            {
+                Id = role.Id,
+                Name = role.Name,
+                Description = null,
+                UserCount = role.UserRoles.Count
+            };
+
+            return Ok(dto);
         }
         // ===== SEARCH =====
+
         [HttpGet("search")]
         [Authorize(Policy = PermissionConstants.Roles.View)]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
-                return BadRequest(new { message = "Keyword is required" });
+                return BadRequest(new { message = "Từ khóa là bắt buộc" });
 
-            // Dùng FindAsync trong repository
-            var roles = await _unitOfWork.RoleRepository.FindAsync(r =>
-                r.Name.ToLower().Contains(keyword.ToLower()));
+            var roles = await _unitOfWork.RoleRepository
+                .FindWithUsersAsync(r => r.Name.ToLower().Contains(keyword.ToLower()));
 
             if (!roles.Any())
-                return NotFound(new { message = "No roles found matching the keyword" });
+                return NotFound(new { message = "Không tìm thấy vai trò nào phù hợp với từ khóa" });
 
-            return Ok(roles.Select(r => new
+            var result = roles.Select(r => new RoleDto
             {
-                r.Id,
-                r.Name
-            }));
+                Id = r.Id,
+                Name = r.Name,
+                Description = null,
+                UserCount = r.UserRoles.Count
+            });
+
+            return Ok(result);
         }
+
+
 
         // ===== CREATE =====
         [HttpPost]
@@ -145,12 +164,12 @@ namespace BE__Small_Shop_Management_System.Controllers
         public async Task<IActionResult> Create([FromBody] CreateRoleDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
-                return BadRequest("Role name is required");
+                return BadRequest("Tên vai trò là bắt buộc");
 
             // 🔥 Kiểm tra trùng tên trước khi thêm
             var exists = await _unitOfWork.RoleRepository.ExistsAsync(r => r.Name == dto.Name);
             if (exists)
-                return BadRequest("Role name already exists");
+                return BadRequest("Tên vai trò đã tồn tại");
 
             var role = new Role
             {
@@ -162,7 +181,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(new
             {
-                message = "Role created successfully",
+                message = "Vai trò đã được tạo thành công",
                 roleId = role.Id,
                 name = role.Name
             });
@@ -175,7 +194,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdateRoleDto update)
         {
             if (string.IsNullOrWhiteSpace(update.Name))
-                return BadRequest("Role name is required");
+                return BadRequest("Tên vai trò là bắt buộc");
 
             var role = await _unitOfWork.RoleRepository.GetByIdAsync(id);
             if (role == null) return NotFound();
@@ -183,7 +202,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             // 🔥 Kiểm tra xem tên role mới có bị trùng với role khác không
             var exists = await _unitOfWork.RoleRepository.ExistsAsync(r => r.Name == update.Name && r.Id != id);
             if (exists)
-                return BadRequest("Role name already exists");
+                return BadRequest("Tên vai trò đã tồn tại");
 
             role.Name = update.Name;
 
@@ -192,9 +211,9 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(new
             {
-                message = "Role updated successfully",
+                message = "Vai trò đã được cập nhật thành công",
                 roleId = role.Id,
-                name = role.Name
+                name = role.Name 
             });
         }
 
@@ -210,7 +229,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork.RoleRepository.Delete(role);
             await _unitOfWork.CompleteAsync();
 
-            return Ok(new { message = "Role deleted successfully", roleId = id });
+            return Ok(new { message = "Vai trò đã được xóa thành công", roleId = id });
         }
     }
 }

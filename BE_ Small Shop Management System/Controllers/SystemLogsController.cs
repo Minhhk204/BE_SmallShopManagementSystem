@@ -16,6 +16,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         public SystemLogsController(IUnitOfWork unitOfWork)
         {
+
             _unitOfWork = unitOfWork;
         }
 
@@ -57,6 +58,51 @@ namespace BE__Small_Shop_Management_System.Controllers
             };
 
             return Ok(dto);
+
         }
+        [HttpDelete("xóa 1 hoặc nhiều theo id")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteRange([FromBody] List<int> ids)
+        {
+            var logs = await _unitOfWork.SystemLogRepository.FindAsync(l => ids.Contains(l.Id));
+            if (!logs.Any())
+                return NotFound("Không tìm thấy log nào để xóa");
+
+            _unitOfWork.SystemLogRepository.DeleteRange(logs);
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(new { message = $"Đã xóa {logs.Count()} log" });
+        }
+
+
+
+        [HttpDelete("clear-all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ClearAll()
+        {
+            var logs = await _unitOfWork.SystemLogRepository.GetAllAsync();
+            _unitOfWork.SystemLogRepository.DeleteRange(logs);
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(new { message = "Đã xóa toàn bộ logs" });
+        }
+
+
+        [HttpDelete("clear-old")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ClearOldLogs([FromQuery] int days = 30)
+        {
+            var cutoffDate = DateTime.UtcNow.AddDays(-days);
+
+            var oldLogs = await _unitOfWork.SystemLogRepository.FindAsync(l => l.CreatedAt < cutoffDate);
+            if (!oldLogs.Any())
+                return NotFound($"Không có log nào cũ hơn {days} ngày để xóa");
+
+            _unitOfWork.SystemLogRepository.DeleteRange(oldLogs);
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(new { message = $"Đã xóa {oldLogs.Count()} log cũ hơn {days} ngày" });
+        }
+
     }
 }

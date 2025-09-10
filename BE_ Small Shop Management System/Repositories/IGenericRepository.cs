@@ -12,5 +12,7 @@ namespace BE__Small_Shop_Management_System.Repositories
         Task AddAsync(T entity);
         void Update(T entity);
         void Delete(T entity);
+        void DeleteRange(IEnumerable<T> entities);
+
     }
 }

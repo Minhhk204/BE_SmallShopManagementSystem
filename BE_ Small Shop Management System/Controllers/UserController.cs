@@ -8,6 +8,8 @@ using System.Security.Claims;
 using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.Services;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -17,10 +19,13 @@ namespace BE__Small_Shop_Management_System.Controllers
     {
         private readonly UserPermissionService _service;
         private readonly IUnitOfWork _unitOfWork;
-        public UserController(UserPermissionService service, IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+
+        public UserController(UserPermissionService service, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _service = service;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
 
@@ -76,7 +81,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(new
             {
-                message = "Updated user permissions",
+                message = "Quyền người dùng được cập nhật",
                 userId,
                 permissions = result
             });
@@ -91,11 +96,15 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             user.IsActive = false;
             await _unitOfWork.CompleteAsync();
-            return Ok(new { message = "Tài khoản đã bị khóa", user });
+
+            return Ok(new
+            {
+                message = "Tài khoản đã bị khóa",
+                data = MapToDto(user)
+            });
         }
 
         [HttpPut("{id}/activate")]
-        
         [Authorize(Policy = PermissionConstants.Users.Lock)]
         public async Task<IActionResult> Activate(int id)
         {
@@ -104,149 +113,219 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             user.IsActive = true;
             await _unitOfWork.CompleteAsync();
-            return Ok(new { message = "Tài khoản đã được mở khóa", user });
+
+            return Ok(new
+            {
+                message = "Tài khoản đã được mở khóa",
+                data = MapToDto(user)
+            });
         }
+
+
+
         // ===== READ ALL =====
         [HttpGet]
-        [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> GetAll()
         {
-            var users = await _unitOfWork.UserRepository.GetAllAsync();
-
-            var result = users.Select(u => new UserDto
-            {
-                Id = u.Id,
-                Username = u.Username,
-                Email = u.Email,
-                IsActive = u.IsActive
-                //Role = u.UserRoles != null && u.UserRoles.Any()
-                //    ? string.Join(", ", u.UserRoles.Select(ur => ur.Role.Name))
-                //    : ""
-            });
-
+            var users = await _unitOfWork.UserRepository.GetAllWithRolesAsync();
+            var result = users.Select(u => MapToDto(u));
             return Ok(result);
         }
 
-        // ===== READ by Id =====
         [HttpGet("{id}")]
-        [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> GetById(int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            if (user == null) return NotFound();
+            var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
+            if (user == null) return NotFound(new { message = "Người dùng không tồn tại hoặc đã bị xóa" });
 
-            var result = new UserDto
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                //Role = user.UserRoles != null && user.UserRoles.Any()
-                //    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
-                //    : ""
-            };
-
-            return Ok(result);
+            return Ok(MapToDto(user));
         }
 
+
+        // ===== SEARCH =====
         [HttpGet("search")]
         [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
-                return BadRequest(new { message = "Keyword is required" });
+                return BadRequest(new { message = "Từ khóa là bắt buộc" });
 
             var users = await _unitOfWork.UserRepository.FindAsync(u =>
-                u.Username.ToLower().Contains(keyword.ToLower()));
+                u.Username.ToLower().Contains(keyword.ToLower()) ||
+                u.Email.ToLower().Contains(keyword.ToLower()) ||
+                (!string.IsNullOrEmpty(u.FullName) && u.FullName.ToLower().Contains(keyword.ToLower()))
+            );
 
             if (!users.Any())
-                return NotFound(new { message = "No users found matching the keyword" });
+                return NotFound(new { message = "Không tìm thấy người dùng nào khớp với từ khóa" });
 
-            var result = users.Select(u => new UserDto
-            {
-                Id = u.Id,
-                Username = u.Username,
-                Email = u.Email,
-                //Role = u.UserRoles != null && u.UserRoles.Any()
-                //    ? string.Join(", ", u.UserRoles.Select(ur => ur.Role.Name))
-                //    : ""
-            });
-
+            var result = users.Select(u => MapToDto(u));
             return Ok(result);
         }
 
 
-        // ===== CREATE =====
-        //[HttpPost]
-        //[Authorize(Policy = PermissionConstants.Users.Create)]
-        //public async Task<IActionResult> Create([FromBody] UserDto dto)
-        //{
-        //    if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Email))
-        //        return BadRequest("Username and Email are required");
+        [HttpPost]
+        [Authorize(Policy = PermissionConstants.Users.Create)]
+        public async Task<IActionResult> Create([FromBody] UserDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Email))
+                return BadRequest("Tên người dùng và Email là bắt buộc");
 
-        //    // Kiểm tra trùng Username
-        //    var exists = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username);
-        //    if (exists)
-        //        return BadRequest("Username already exists");
+            // Kiểm tra trùng Username
+            var exists = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username);
+            if (exists)
+                return BadRequest("Tên người dùng đã tồn tại");
 
-        //    var user = new User
-        //    {
-        //        Username = dto.Username,
-        //        Email = dto.Email,
-        //        IsActive = true
-        //    };
+            // Hash password (nếu null => để trống => bắt buộc reset khi login lần đầu)
+            string passwordHash = string.IsNullOrWhiteSpace(dto.Password)
+                ? string.Empty
+                : BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-        //    await _unitOfWork.UserRepository.AddAsync(user);
-        //    await _unitOfWork.CompleteAsync();
+            // Tạo user
+            var user = new User
+            {
+                Username = dto.Username,
+                Email = dto.Email,
+                FullName = dto.FullName,
+                PhoneNumber = dto.PhoneNumber,
+                PasswordHash = passwordHash,
+                IsActive = dto.IsActive
+            };
 
-        //    var result = new UserDto
-        //    {
-        //        Id = user.Id,
-        //        Username = user.Username,
-        //        Email = user.Email,
-        //        Role = ""
-        //    };
+            await _unitOfWork.UserRepository.AddAsync(user);
+            await _unitOfWork.CompleteAsync();
 
-        //    return Ok(new
-        //    {
-        //        message = "User created successfully",
-        //        data = result
-        //    });
-        //}
+            // Nếu nhập RoleName thì tìm RoleId tương ứng và gán
+            if (!string.IsNullOrWhiteSpace(dto.RoleName))
+            {
+                var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
+                if (role == null)
+                    return BadRequest($"Role '{dto.RoleName}' không tồn tại");
+
+                await _unitOfWork.UserRoleRepository.AddAsync(new UserRole
+                {
+                    UserId = user.Id,
+                    RoleId = role.Id
+                });
+
+                await _unitOfWork.CompleteAsync();
+            }
+
+            return Ok(new
+            {
+                message = "Người dùng đã được tạo thành công",
+                data = new
+                {
+                    user.Id,
+                    user.Username,
+                    user.Email,
+                    user.FullName,
+                    user.PhoneNumber,
+                    user.IsActive,
+                    RoleName = !string.IsNullOrWhiteSpace(dto.RoleName) ? dto.RoleName : null
+                }
+            });
+        }
+
+
+
+
 
         // ===== UPDATE =====
         [HttpPut("{id}")]
         [Authorize(Policy = PermissionConstants.Users.Update)]
         public async Task<IActionResult> Update(int id, [FromBody] UserDto dto)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
             if (user == null) return NotFound();
 
-            // Check trùng username nhưng bỏ qua chính nó
-            var exists = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username && u.Id != id);
-            if (exists)
-                return BadRequest("Username already exists");
+            // Fix cứng Id, Username, Email
+            if (dto.Id != id || dto.Username != user.Username || dto.Email != user.Email)
+            {
+                return BadRequest("Không được phép thay đổi Id, Username hoặc Email");
+            }
 
-            user.Username = dto.Username;
-            user.Email = dto.Email;
+            // Update các field được phép sửa
+            user.FullName = dto.FullName;
+            user.PhoneNumber = dto.PhoneNumber;
+            user.IsActive = dto.IsActive;
+
+            // === Update Role ===
+            user.UserRoles.Clear(); // xoá role cũ
+
+            if (!string.IsNullOrWhiteSpace(dto.RoleName))
+            {
+                var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
+                if (role == null)
+                    return BadRequest($"Role '{dto.RoleName}' không tồn tại");
+
+                user.UserRoles.Add(new UserRole
+                {
+                    UserId = user.Id,
+                    RoleId = role.Id
+                });
+            }
 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.CompleteAsync();
 
-            var result = new UserDto
+            return Ok(new
+            {
+                message = "Người dùng đã cập nhật thành công",
+                data = new
+                {
+                    user.Id,
+                    user.Username,
+                    user.Email,
+                    user.FullName,
+                    user.PhoneNumber,
+                    user.IsActive,
+                    RoleName = user.UserRoles.Any()
+                        ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
+                        : null
+                }
+            });
+        }
+
+
+
+        // ===== DELETE =====
+       
+        [HttpPut("{id}/DeleteUser")]
+        [Authorize(Policy = PermissionConstants.Users.Delete)]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null) return NotFound();
+            user.IsActive = false;
+            user.IsDeleted = true;
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(new
+            {
+                message = "Tài khoản đã bị xóa",
+                data = MapToDto(user)
+            });
+        }
+
+
+        // ===== Helper mapping =====
+
+        private UserDto MapToDto(User user)
+        {
+            return new UserDto
             {
                 Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
-                //Role = user.UserRoles != null && user.UserRoles.Any()
-                //    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
-                //    : ""
+                FullName = user.FullName,
+                PhoneNumber = user.PhoneNumber,
+                IsActive = user.IsActive,
+                IsDeleted = user.IsDeleted,
+                RoleName = user.UserRoles != null && user.UserRoles.Any()
+                    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
+                    : ""
             };
-
-            return Ok(new
-            {
-                message = "User updated successfully",
-                data = result
-            });
         }
 
         [HttpPost("{userId}/assign-role")]
@@ -256,7 +335,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             await _unitOfWork.UserRoleRepository.AssignRoleAsync(userId, request.RoleId);
             return Ok(new
             {
-                message = "Role assigned successfully",
+                message = "Vai trò đã được chỉ định thành công",
                 userId,
                 roleId = request.RoleId
             });
@@ -270,7 +349,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             await _unitOfWork.UserRoleRepository.RemoveRoleAsync(userId, roleId);
             return Ok(new
             {
-                message = "Role removed successfully",
+                message = "Đã xóa vai trò thành công",
                 userId,
                 roleId
             });
