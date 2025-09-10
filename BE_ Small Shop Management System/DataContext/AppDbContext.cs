@@ -47,7 +47,7 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasOne(ur => ur.Role)
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
             
 
             // ==== Role - Permission (N-N) ====
