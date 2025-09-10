@@ -34,31 +34,8 @@ namespace BE__Small_Shop_Management_System.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignPermissionsToRole(int roleId, [FromBody] AssignPermissionsRequest request)
         {
-            //// lấy current permissions của role
-            //var currentPermissions = await _unitOfWork.RolePermissionRepository.GetPermissionsByRoleIdAsync(roleId);
-            //var currentIds = currentPermissions.Select(p => p.Id).ToHashSet();
-
-            //// lặp qua request
-            //foreach (var item in request.Permissions)
-            //{
-            //    if (item.Granted && !currentIds.Contains(item.Id))
-            //    {
-            //        // thêm mới
-            //        await _unitOfWork.RolePermissionRepository.AssignAsync(roleId, new[] { item.Id });
-            //    }
-            //    else if (!item.Granted && currentIds.Contains(item.Id))
-            //    {
-            //        // gỡ bỏ
-            //        await _unitOfWork.RolePermissionRepository.RemoveAsync(roleId, new[] { item.Id });
-            //    }
-            //}
-
             // Xóa toàn bộ quyền cũ
-            //var currentPermissions = await _unitOfWork.RolePermissionRepository.GetPermissionsByRoleIdAsync(roleId);
-            //if (currentPermissions.Any())
-            //{
                 await _unitOfWork.RolePermissionRepository.RemoveAllByRoleIdAsync(roleId);
-            //}
 
             // Thêm lại theo danh sách request (chỉ những cái granted = true)
             var grantedIds = request.Permissions
@@ -150,7 +127,8 @@ namespace BE__Small_Shop_Management_System.Controllers
             // 🔥 Kiểm tra trùng tên trước khi thêm
             var exists = await _unitOfWork.RoleRepository.ExistsAsync(r => r.Name == dto.Name);
             if (exists)
-                return BadRequest("Role name already exists");
+                //return BadRequest("Role name already exists");
+                return BadRequest(new { errorCode = "ROLE_DUPLICATE", message = "Role name already exists" });
 
             var role = new Role
             {
