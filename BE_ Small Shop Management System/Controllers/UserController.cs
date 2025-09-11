@@ -10,6 +10,7 @@ using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using BE__Small_Shop_Management_System.Extensions;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -140,6 +141,67 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(MapToDto(user));
         }
+
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged(
+        [FromQuery] bool? isActive,
+        [FromQuery] string? email,
+        [FromQuery] string? username,
+        [FromQuery] string? phone,
+        [FromQuery] string? fullName,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+        {
+            var query = _unitOfWork.UserRepository.Query();
+
+            // lọc dữ liệu
+            if (isActive.HasValue)
+                query = query.Where(u => u.IsActive == isActive.Value);
+
+            if (!string.IsNullOrEmpty(email))
+                query = query.Where(u => u.Email.Contains(email));
+
+            if (!string.IsNullOrEmpty(username))
+                query = query.Where(u => u.Username.Contains(username));
+
+            if (!string.IsNullOrEmpty(phone))
+                query = query.Where(u => u.PhoneNumber.Contains(phone));
+
+            if (!string.IsNullOrEmpty(fullName))
+                query = query.Where(u => u.FullName.Contains(fullName));
+
+            // đếm tổng số
+            var totalItems = await query.CountAsync();
+
+            // phân trang + map trực tiếp sang DTO
+            var items = await query
+                .OrderBy(u => u.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    FullName = u.FullName,
+                    PhoneNumber = u.PhoneNumber,
+                    IsActive = u.IsActive
+                })
+                .ToListAsync();
+
+            var result = new PagedResult<UserDto>
+            {
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Items = items
+            };
+
+            return Ok(result);
+        }
+
 
 
         // ===== SEARCH =====
