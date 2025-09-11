@@ -11,6 +11,7 @@ using BE__Small_Shop_Management_System.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using BE__Small_Shop_Management_System.Extensions;
+using static BE__Small_Shop_Management_System.Constants.PermissionConstants;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -44,24 +45,18 @@ namespace BE__Small_Shop_Management_System.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignPermissionsToUser(int userId, [FromBody] AssignPermissionsRequest request)
         {
-            // lấy current permissions
-            var currentPermissions = await _unitOfWork.UserPermissionRepository
-                .GetPermissionsByUserIdAsync(userId);
-            var currentIds = currentPermissions.Select(p => p.Id).ToHashSet();
+            // Xóa toàn bộ quyền cũ
+            await _unitOfWork.UserPermissionRepository.RemoveAllByUserIdAsync(userId);
 
-            // lặp qua request
-            foreach (var item in request.Permissions)
+            // Thêm lại theo danh sách request (chỉ những cái granted = true)
+            var grantedIds = request.Permissions
+                .Where(p => p.Granted)
+                .Select(p => p.Id)
+                .ToList();
+
+            if (grantedIds.Any())
             {
-                if (item.Granted && !currentIds.Contains(item.Id))
-                {
-                    // thêm mới
-                    await _unitOfWork.UserPermissionRepository.AssignAsync(userId, new[] { item.Id });
-                }
-                else if (!item.Granted && currentIds.Contains(item.Id))
-                {
-                    // gỡ bỏ
-                    await _unitOfWork.UserPermissionRepository.RemoveAsync(userId, new[] { item.Id });
-                }
+                await _unitOfWork.UserPermissionRepository.AssignAsync(userId, grantedIds);
             }
 
             await _unitOfWork.CompleteAsync();
@@ -69,7 +64,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             // lấy all permissions để trả về kèm trạng thái
             var allPermissions = await _unitOfWork.PermissionRepository.GetAllPermissionsAsync();
             var updated = await _unitOfWork.UserPermissionRepository.GetPermissionsByUserIdAsync(userId);
-            var grantedIds = updated.Select(p => p.Id).ToHashSet();
+            var updateGranted = updated.Select(p => p.Id).ToHashSet();
 
             var result = allPermissions.Select(p => new
             {
@@ -77,7 +72,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 name = p.Name,
                 module = p.Module,
                 description = p.Description,
-                granted = grantedIds.Contains(p.Id)
+                granted = updateGranted.Contains(p.Id)
             });
 
             return Ok(new

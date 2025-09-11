@@ -47,6 +47,13 @@ namespace BE__Small_Shop_Management_System.Repositories
                 .ToListAsync();
             _context.UserPermissions.RemoveRange(toRemove);
         }
+
+        public async Task RemoveAllByUserIdAsync(int userId)
+        {
+            var userPermissions = _context.UserPermissions.Where(rp => rp.UserId == userId);
+            _context.UserPermissions.RemoveRange(userPermissions);
+            await _context.SaveChangesAsync();
+        }
     }
 
 }
