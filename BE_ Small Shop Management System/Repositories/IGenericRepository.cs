@@ -13,6 +13,6 @@ namespace BE__Small_Shop_Management_System.Repositories
         void Update(T entity);
         void Delete(T entity);
         void DeleteRange(IEnumerable<T> entities);
-
+        IQueryable<T> Query();
     }
 }

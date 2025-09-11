@@ -1,5 +1,6 @@
 ﻿using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.DTOs;
+using BE__Small_Shop_Management_System.Extensions;
 using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.Services;
 using BE__Small_Shop_Management_System.UnitOfWork;
@@ -82,7 +83,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             {
                 Id = r.Id,
                 Name = r.Name,
-                Description = null,
                 UserCount = r.UserRoles.Count
             });
 
@@ -101,12 +101,30 @@ namespace BE__Small_Shop_Management_System.Controllers
             {
                 Id = role.Id,
                 Name = role.Name,
-                Description = null,
                 UserCount = role.UserRoles.Count
             };
 
             return Ok(dto);
         }
+
+        [HttpGet("paged")]
+        [Authorize(Policy = PermissionConstants.Roles.View)]
+        public async Task<IActionResult> GetPaged([FromQuery] PagedRequest request)
+        {
+            var query = _unitOfWork.RoleRepository.Query(); // IQueryable<Role>
+
+            var result = await query
+                .Select(r => new RoleDto
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    UserCount = r.UserRoles.Count
+                })
+                .ToPagedResultAsync(request.PageNumber, request.PageSize);
+
+            return Ok(result);
+        }
+
         // ===== SEARCH =====
 
         [HttpGet("search")]
@@ -126,7 +144,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             {
                 Id = r.Id,
                 Name = r.Name,
-                Description = null,
                 UserCount = r.UserRoles.Count
             });
 
