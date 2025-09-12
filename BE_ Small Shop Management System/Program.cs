@@ -94,6 +94,7 @@ namespace BE__Small_Shop_Management_System
             builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
             builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
             builder.Services.AddScoped<ISystemLogRepository, SystemLogRepository>();
+            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             // Services
             builder.Services.AddScoped<RolePermissionService>();

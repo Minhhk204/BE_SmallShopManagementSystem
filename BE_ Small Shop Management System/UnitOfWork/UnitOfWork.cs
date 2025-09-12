@@ -16,6 +16,7 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
         public ISystemLogRepository SystemLogRepository { get; }
         public IProductRepository ProductRepository { get; }
         public IUserRoleRepository UserRoleRepository { get; }
+        public IRefreshTokenRepository RefreshTokenRepository { get; }
         public UnitOfWork(
             AppDbContext context,
             IUserRepository userRepository,
@@ -25,7 +26,9 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             IRolePermissionRepository rolePermissionRepository,
             ISystemLogRepository systemLogRepository,
             IProductRepository productRepository,
-            IUserRoleRepository userRoleRepository)
+            IUserRoleRepository userRoleRepository,
+            IRefreshTokenRepository refreshTokenRepository)
+
 
         {
             _context = context;
@@ -37,6 +40,7 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             SystemLogRepository = systemLogRepository;
             ProductRepository = productRepository;
             UserRoleRepository = userRoleRepository;
+            RefreshTokenRepository = refreshTokenRepository;
         }
 
         public async Task<int> CompleteAsync()

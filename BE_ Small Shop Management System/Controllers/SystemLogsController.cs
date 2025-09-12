@@ -5,6 +5,8 @@ using BE__Small_Shop_Management_System.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -60,6 +62,58 @@ namespace BE__Small_Shop_Management_System.Controllers
             return Ok(dto);
 
         }
+
+        [HttpGet("paged")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetPaged([FromQuery] SystemLogFilterRequest filter,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+        {
+            var query = _unitOfWork.SystemLogRepository.Query();
+
+            // ✅ Lọc theo UserName
+            if (!string.IsNullOrEmpty(filter.UserName))
+                query = query.Where(l => l.User != null && l.User.Username.Contains(filter.UserName));
+
+            // ✅ Lọc theo Action
+            if (!string.IsNullOrEmpty(filter.Action))
+                query = query.Where(l => l.Action.Contains(filter.Action));
+
+            // ✅ Lọc theo khoảng thời gian
+            if (filter.FromDate.HasValue)
+                query = query.Where(l => l.CreatedAt >= filter.FromDate.Value);
+
+            if (filter.ToDate.HasValue)
+                query = query.Where(l => l.CreatedAt <= filter.ToDate.Value);
+
+            // ✅ Tổng số log sau khi lọc
+            var totalCount = await query.CountAsync();
+
+            // ✅ Phân trang
+            var logs = await query
+                .OrderByDescending(l => l.CreatedAt) // mới nhất trước
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var result = new PagedResult<SystemLogDto>
+            {
+                Items = logs.Select(l => new SystemLogDto
+                {
+                    UserId = l.UserId,
+                    UserName = l.User?.Username,
+                    Action = l.Action,
+                    CreatedAt = l.CreatedAt,
+                    Data = l.Data
+                }),
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
+            };
+
+            return Ok(result);
+        }
+
         [HttpDelete("xóa 1 hoặc nhiều theo id")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteRange([FromBody] List<int> ids)

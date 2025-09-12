@@ -46,6 +46,15 @@ namespace BE__Small_Shop_Management_System.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
+        // Hàm tạo refresh token
+        public RefreshToken GenerateRefreshToken(int userId, int expireDays = 7)
+        {
+            return new RefreshToken
+            {
+                Token = Guid.NewGuid().ToString("N"),
+                ExpiresAt = DateTime.Now.AddDays(expireDays),
+                UserId = userId
+            };
+        }
     }
 }
