@@ -24,15 +24,8 @@ namespace BE__Small_Shop_Management_System.Controllers
             _context = context;
             _configuration = configuration;
         }
-        private bool IsValidPhoneNumber(string phone)
-        {
-            if (string.IsNullOrWhiteSpace(phone)) return false;
 
-            // Regex: bắt đầu bằng 0, theo sau là 9 số (tổng cộng 10 số)
-            var regex = new Regex(@"^0\d{9}$");
-            return regex.IsMatch(phone);
-        }
-
+        // =================== REGISTER ===================
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto registerDto)
         {
@@ -42,16 +35,13 @@ namespace BE__Small_Shop_Management_System.Controllers
             if (!string.IsNullOrEmpty(registerDto.PhoneNumber) && !IsValidPhoneNumber(registerDto.PhoneNumber))
                 return BadRequest("Số điện thoại không hợp lệ (phải có 10 chữ số, bắt đầu bằng 0)");
 
-            // Check trùng username/email/phone
             var exists = await _context.Users.AnyAsync(u =>
                 u.Username == registerDto.Username ||
                 u.Email == registerDto.Email ||
                 (!string.IsNullOrEmpty(registerDto.PhoneNumber) && u.PhoneNumber == registerDto.PhoneNumber)
             );
-            if (exists)
-                return BadRequest("Tên đăng nhập, email hoặc số điện thoại đã tồn tại");
+            if (exists) return BadRequest("Tên đăng nhập, email hoặc số điện thoại đã tồn tại");
 
-            // Hash mật khẩu
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
 
             var user = new User
@@ -67,7 +57,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            // Gán role mặc định = Customer
             var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
             if (customerRole == null)
             {
@@ -98,31 +87,25 @@ namespace BE__Small_Shop_Management_System.Controllers
             });
         }
 
+        // =================== LOGIN ===================
         [HttpPost("login")]
-        public IActionResult Login([FromBody] UserLoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
         {
             if (!IsValidEmail(loginDto.Email))
                 return BadRequest("Email không hợp lệ");
 
-            var user = _context.Users.FirstOrDefault(u => u.Email == loginDto.Email);
-            if (user == null) return Unauthorized("Sai thông tin đăng nhập");
-
-            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 return Unauthorized("Sai thông tin đăng nhập");
 
-            if (user.IsDeleted)
-                return Unauthorized("Tài khoản không tồn tại");
+            if (user.IsDeleted) return Unauthorized("Tài khoản không tồn tại");
+            if (!user.IsActive) return Unauthorized("Tài khoản đã bị khóa hoặc chưa được kích hoạt");
 
-            if (!user.IsActive)
-                return Unauthorized("Tài khoản đã bị khóa hoặc chưa được kích hoạt");
-
-            // Roles
-            var roles = _context.UserRoles
+            var roles = await _context.UserRoles
                 .Where(ur => ur.UserId == user.Id)
                 .Select(ur => ur.Role.Name)
-                .ToList();
+                .ToListAsync();
 
-            // Permissions (Role + User)
             var rolePermissions = _context.UserRoles
                 .Where(ur => ur.UserId == user.Id)
                 .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission.Name));
@@ -131,13 +114,22 @@ namespace BE__Small_Shop_Management_System.Controllers
                 .Where(up => up.UserId == user.Id)
                 .Select(up => up.Permission.Name);
 
-            var permissions = rolePermissions
-                .Union(directPermissions)
-                .Distinct()
-                .ToList();
+            var permissions = rolePermissions.Union(directPermissions).Distinct().ToList();
 
-            // Sinh JWT
+            // Access token
             var token = GenerateJwtToken(user, roles, permissions);
+
+            // Refresh token
+            var refreshToken = new RefreshToken
+            {
+                Token = Guid.NewGuid().ToString("N"),
+                ExpiresAt = DateTime.Now.AddDays(7),
+                UserId = user.Id,
+                IsRevoked = false
+            };
+
+            await _context.RefreshTokens.AddAsync(refreshToken);
+            await _context.SaveChangesAsync();
 
             return Ok(new
             {
@@ -146,27 +138,89 @@ namespace BE__Small_Shop_Management_System.Controllers
                 email = user.Email,
                 roles,
                 permissions,
-                token
+                token,
+                refreshToken = refreshToken.Token
             });
         }
 
+        // =================== REFRESH TOKEN ===================
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        {
+            var storedToken = await _context.RefreshTokens
+                .Include(rt => rt.User)
+                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
+            if (storedToken == null || storedToken.IsRevoked || storedToken.ExpiresAt < DateTime.UtcNow)
+                return Unauthorized("Refresh token không hợp lệ hoặc đã hết hạn");
 
+            var user = storedToken.User;
+            if (user == null) return Unauthorized("Người dùng không tồn tại");
+
+            var roles = await _context.UserRoles
+                .Where(ur => ur.UserId == user.Id)
+                .Select(ur => ur.Role.Name)
+                .ToListAsync();
+
+            var rolePermissions = _context.UserRoles
+                .Where(ur => ur.UserId == user.Id)
+                .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission.Name));
+
+            var directPermissions = _context.UserPermissions
+                .Where(up => up.UserId == user.Id)
+                .Select(up => up.Permission.Name);
+
+            var permissions = rolePermissions.Union(directPermissions).Distinct().ToList();
+
+            var newAccessToken = GenerateJwtToken(user, roles, permissions);
+
+            var newRefreshToken = new RefreshToken
+            {
+                Token = Guid.NewGuid().ToString("N"),
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                UserId = user.Id,
+                IsRevoked = false
+            };
+
+            storedToken.IsRevoked = true;
+            await _context.RefreshTokens.AddAsync(newRefreshToken);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                accessToken = newAccessToken,
+                refreshToken = newRefreshToken.Token
+            });
+        }
+
+        // =================== LOGOUT ===================
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] string refreshToken)
+        {
+            var storedToken = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+
+            if (storedToken == null) return NotFound("Không tìm thấy refresh token");
+
+            storedToken.IsRevoked = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Đăng xuất thành công" });
+        }
+
+        // =================== HELPERS ===================
         private string GenerateJwtToken(User user, List<string> roles, List<string> permissions)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
             var claims = new List<Claim>
-        {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.Email, user.Email)
-        };
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+            };
 
-            // roles
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
-
-            // permissions
             foreach (var permission in permissions)
                 claims.Add(new Claim("permission", permission));
 
@@ -183,6 +237,14 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        private bool IsValidPhoneNumber(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) return false;
+            var regex = new Regex(@"^0\d{9}$");
+            return regex.IsMatch(phone);
+        }
+
         private bool IsValidEmail(string email)
         {
             try

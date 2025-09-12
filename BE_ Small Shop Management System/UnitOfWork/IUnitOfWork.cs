@@ -13,6 +13,7 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
         ISystemLogRepository SystemLogRepository { get; }
         IProductRepository ProductRepository { get; }
         IUserRoleRepository UserRoleRepository { get; }
+        IRefreshTokenRepository RefreshTokenRepository { get; }
         Task<int> CompleteAsync();
     }
 }
