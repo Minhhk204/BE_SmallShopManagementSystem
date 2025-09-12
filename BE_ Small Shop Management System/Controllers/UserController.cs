@@ -1,16 +1,15 @@
 ﻿using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.UnitOfWork;
 using BE__Small_Shop_Management_System.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.Services;
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using BE__Small_Shop_Management_System.Extensions;
+using AutoMapper;
+using BE__Small_Shop_Management_System.Helper;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -29,350 +28,432 @@ namespace BE__Small_Shop_Management_System.Controllers
             _mapper = mapper;
         }
 
-
-        // Lấy map quyền của user (bao gồm cả quyền từ role)
+        // ================== GET PERMISSIONS ==================
         [HttpGet("{userId}/permissions")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPermissionsOfUser(int userId)
         {
-            var map = await _service.GetPermissionMapAsync(userId, includeRolePermissions: true);
-            return Ok(new { userId, permissions = map });
+            try
+            {
+                var map = await _service.GetPermissionMapAsync(userId, includeRolePermissions: true);
+                return Ok(ApiResponse<object>.SuccessResponse(
+                    new { userId, permissions = map },
+                    "Lấy quyền người dùng thành công"
+                ));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy quyền người dùng", new[] { ex.Message }, 500));
+            }
         }
 
-        // Gán quyền trực tiếp cho user (replace all) và trả về map
+        // ================== ASSIGN PERMISSIONS ==================
         [HttpPost("{userId}/assign-permissions")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignPermissionsToUser(int userId, [FromBody] AssignPermissionsRequest request)
         {
-            // lấy current permissions
-            var currentPermissions = await _unitOfWork.UserPermissionRepository
-                .GetPermissionsByUserIdAsync(userId);
-            var currentIds = currentPermissions.Select(p => p.Id).ToHashSet();
-
-            // lặp qua request
-            foreach (var item in request.Permissions)
+            try
             {
-                if (item.Granted && !currentIds.Contains(item.Id))
+                var currentPermissions = await _unitOfWork.UserPermissionRepository.GetPermissionsByUserIdAsync(userId);
+                var currentIds = currentPermissions.Select(p => p.Id).ToHashSet();
+
+                foreach (var item in request.Permissions)
                 {
-                    // thêm mới
-                    await _unitOfWork.UserPermissionRepository.AssignAsync(userId, new[] { item.Id });
+                    if (item.Granted && !currentIds.Contains(item.Id))
+                        await _unitOfWork.UserPermissionRepository.AssignAsync(userId, new[] { item.Id });
+                    else if (!item.Granted && currentIds.Contains(item.Id))
+                        await _unitOfWork.UserPermissionRepository.RemoveAsync(userId, new[] { item.Id });
                 }
-                else if (!item.Granted && currentIds.Contains(item.Id))
+
+                await _unitOfWork.CompleteAsync();
+
+                var allPermissions = await _unitOfWork.PermissionRepository.GetAllPermissionsAsync();
+                var updated = await _unitOfWork.UserPermissionRepository.GetPermissionsByUserIdAsync(userId);
+                var grantedIds = updated.Select(p => p.Id).ToHashSet();
+
+                var result = allPermissions.Select(p => new
                 {
-                    // gỡ bỏ
-                    await _unitOfWork.UserPermissionRepository.RemoveAsync(userId, new[] { item.Id });
-                }
+                    id = p.Id,
+                    name = p.Name,
+                    module = p.Module,
+                    description = p.Description,
+                    granted = grantedIds.Contains(p.Id)
+                });
+
+                return Ok(ApiResponse<object>.SuccessResponse(
+                    new { userId, permissions = result },
+                    "Quyền người dùng được cập nhật"
+                ));
             }
-
-            await _unitOfWork.CompleteAsync();
-
-            // lấy all permissions để trả về kèm trạng thái
-            var allPermissions = await _unitOfWork.PermissionRepository.GetAllPermissionsAsync();
-            var updated = await _unitOfWork.UserPermissionRepository.GetPermissionsByUserIdAsync(userId);
-            var grantedIds = updated.Select(p => p.Id).ToHashSet();
-
-            var result = allPermissions.Select(p => new
+            catch (Exception ex)
             {
-                id = p.Id,
-                name = p.Name,
-                module = p.Module,
-                description = p.Description,
-                granted = grantedIds.Contains(p.Id)
-            });
-
-            return Ok(new
-            {
-                message = "Quyền người dùng được cập nhật",
-                userId,
-                permissions = result
-            });
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi gán quyền người dùng", new[] { ex.Message }, 500));
+            }
         }
 
+        // ================== ACTIVATE / DEACTIVATE ==================
         [HttpPut("{id}/deactivate")]
         [Authorize(Policy = PermissionConstants.Users.Lock)]
         public async Task<IActionResult> Deactivate(int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            if (user == null) return NotFound();
-
-            user.IsActive = false;
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(new
+            try
             {
-                message = "Tài khoản đã bị khóa",
-                data = MapToDto(user)
-            });
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
+
+                user.IsActive = false;
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(ApiResponse<UserDto>.SuccessResponse(MapToDto(user), "Tài khoản đã bị khóa"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi khóa tài khoản", new[] { ex.Message }, 500));
+            }
         }
 
         [HttpPut("{id}/activate")]
         [Authorize(Policy = PermissionConstants.Users.Lock)]
         public async Task<IActionResult> Activate(int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            if (user == null) return NotFound();
-
-            user.IsActive = true;
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(new
+            try
             {
-                message = "Tài khoản đã được mở khóa",
-                data = MapToDto(user)
-            });
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
+
+                user.IsActive = true;
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(ApiResponse<UserDto>.SuccessResponse(MapToDto(user), "Tài khoản đã được mở khóa"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi mở khóa tài khoản", new[] { ex.Message }, 500));
+            }
         }
 
-
-
-        // ===== READ ALL =====
+        // ================== GET ALL ==================
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var users = await _unitOfWork.UserRepository.GetAllWithRolesAsync();
-            var result = users.Select(u => MapToDto(u));
-            return Ok(result);
+            try
+            {
+                var users = await _unitOfWork.UserRepository.GetAllWithRolesAsync();
+                var result = users.Select(u => MapToDto(u));
+                return Ok(ApiResponse<object>.SuccessResponse(result, "Lấy danh sách người dùng thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy danh sách người dùng", new[] { ex.Message }, 500));
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
-            if (user == null) return NotFound(new { message = "Người dùng không tồn tại hoặc đã bị xóa" });
+            try
+            {
+                var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
+                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại hoặc đã bị xóa", null, 404));
 
-            return Ok(MapToDto(user));
+                return Ok(ApiResponse<UserDto>.SuccessResponse(MapToDto(user), "Lấy thông tin người dùng thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy người dùng theo Id", new[] { ex.Message }, 500));
+            }
         }
 
-
+        // ================== PAGING ==================
         [HttpGet("paged")]
         public async Task<IActionResult> GetPaged(
-        [FromQuery] bool? isActive,
-        [FromQuery] string? email,
-        [FromQuery] string? username,
-        [FromQuery] string? phone,
-        [FromQuery] string? fullName,
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+            [FromQuery] bool? isActive,
+            [FromQuery] string? email,
+            [FromQuery] string? username,
+            [FromQuery] string? phone,
+            [FromQuery] string? fullName,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var query = _unitOfWork.UserRepository.Query();
-
-            // lọc dữ liệu
-            if (isActive.HasValue)
-                query = query.Where(u => u.IsActive == isActive.Value);
-
-            if (!string.IsNullOrEmpty(email))
-                query = query.Where(u => u.Email.Contains(email));
-
-            if (!string.IsNullOrEmpty(username))
-                query = query.Where(u => u.Username.Contains(username));
-
-            if (!string.IsNullOrEmpty(phone))
-                query = query.Where(u => u.PhoneNumber.Contains(phone));
-
-            if (!string.IsNullOrEmpty(fullName))
-                query = query.Where(u => u.FullName.Contains(fullName));
-
-            // đếm tổng số
-            var totalItems = await query.CountAsync();
-
-            // phân trang + map trực tiếp sang DTO
-            var items = await query
-                .OrderBy(u => u.Id)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Select(u => new UserDto
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Email = u.Email,
-                    FullName = u.FullName,
-                    PhoneNumber = u.PhoneNumber,
-                    IsActive = u.IsActive
-                })
-                .ToListAsync();
-
-            var result = new PagedResult<UserDto>
+            try
             {
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                Items = items
-            };
+                var query = _unitOfWork.UserRepository.Query();
 
-            return Ok(result);
+                if (isActive.HasValue) query = query.Where(u => u.IsActive == isActive.Value);
+                if (!string.IsNullOrEmpty(email)) query = query.Where(u => u.Email.Contains(email));
+                if (!string.IsNullOrEmpty(username)) query = query.Where(u => u.Username.Contains(username));
+                if (!string.IsNullOrEmpty(phone)) query = query.Where(u => u.PhoneNumber.Contains(phone));
+                if (!string.IsNullOrEmpty(fullName)) query = query.Where(u => u.FullName.Contains(fullName));
+
+                var totalItems = await query.CountAsync();
+
+                var items = await query
+                    .OrderBy(u => u.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(u => new UserDto
+                    {
+                        Id = u.Id,
+                        Username = u.Username,
+                        Email = u.Email,
+                        FullName = u.FullName,
+                        PhoneNumber = u.PhoneNumber,
+                        IsActive = u.IsActive
+                    })
+                    .ToListAsync();
+
+                var result = new PagedResult<UserDto>
+                {
+                    TotalItems = totalItems,
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Items = items
+                };
+
+                return Ok(ApiResponse<PagedResult<UserDto>>.SuccessResponse(result, "Lấy danh sách người dùng phân trang thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi phân trang người dùng", new[] { ex.Message }, 500));
+            }
         }
 
-
-
-        // ===== SEARCH =====
+        // ================== SEARCH ==================
         [HttpGet("search")]
         [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
-            if (string.IsNullOrWhiteSpace(keyword))
-                return BadRequest(new { message = "Từ khóa là bắt buộc" });
+            try
+            {
+                if (string.IsNullOrWhiteSpace(keyword))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Từ khóa là bắt buộc", null, 400));
 
-            var users = await _unitOfWork.UserRepository.FindAsync(u =>
-                u.Username.ToLower().Contains(keyword.ToLower()) ||
-                u.Email.ToLower().Contains(keyword.ToLower()) ||
-                (!string.IsNullOrEmpty(u.FullName) && u.FullName.ToLower().Contains(keyword.ToLower()))
-            );
+                var users = await _unitOfWork.UserRepository.FindAsync(u =>
+                    u.Username.ToLower().Contains(keyword.ToLower()) ||
+                    u.Email.ToLower().Contains(keyword.ToLower()) ||
+                    (!string.IsNullOrEmpty(u.FullName) && u.FullName.ToLower().Contains(keyword.ToLower()))
+                );
 
-            if (!users.Any())
-                return NotFound(new { message = "Không tìm thấy người dùng nào khớp với từ khóa" });
+                if (!users.Any())
+                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy người dùng nào khớp với từ khóa", null, 404));
 
-            var result = users.Select(u => MapToDto(u));
-            return Ok(result);
+                var result = users.Select(u => MapToDto(u));
+                return Ok(ApiResponse<object>.SuccessResponse(result, "Tìm kiếm người dùng thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi tìm kiếm người dùng", new[] { ex.Message }, 500));
+            }
         }
 
-
+        // ================== CREATE ==================
         [HttpPost]
         [Authorize(Policy = PermissionConstants.Users.Create)]
         public async Task<IActionResult> Create([FromBody] UserDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Email))
-                return BadRequest("Tên người dùng và Email là bắt buộc");
-
-            // Kiểm tra trùng Username
-            var exists = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username);
-            if (exists)
-                return BadRequest("Tên người dùng đã tồn tại");
-
-            // Hash password (nếu null => để trống => bắt buộc reset khi login lần đầu)
-            string passwordHash = string.IsNullOrWhiteSpace(dto.Password)
-                ? string.Empty
-                : BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
-            // Tạo user
-            var user = new User
+            try
             {
-                Username = dto.Username,
-                Email = dto.Email,
-                FullName = dto.FullName,
-                PhoneNumber = dto.PhoneNumber,
-                PasswordHash = passwordHash,
-                IsActive = dto.IsActive
-            };
+                if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Email))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng và Email là bắt buộc", null, 400));
 
-            await _unitOfWork.UserRepository.AddAsync(user);
-            await _unitOfWork.CompleteAsync();
+                var exists = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username);
+                if (exists)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng đã tồn tại", null, 400));
 
-            // Nếu nhập RoleName thì tìm RoleId tương ứng và gán
-            if (!string.IsNullOrWhiteSpace(dto.RoleName))
-            {
-                var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                if (role == null)
-                    return BadRequest($"Role '{dto.RoleName}' không tồn tại");
+                string passwordHash = string.IsNullOrWhiteSpace(dto.Password)
+                    ? string.Empty
+                    : BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
-                await _unitOfWork.UserRoleRepository.AddAsync(new UserRole
+                var user = new User
                 {
-                    UserId = user.Id,
-                    RoleId = role.Id
-                });
+                    Username = dto.Username,
+                    Email = dto.Email,
+                    FullName = dto.FullName,
+                    PhoneNumber = dto.PhoneNumber,
+                    PasswordHash = passwordHash,
+                    IsActive = dto.IsActive
+                };
 
+                await _unitOfWork.UserRepository.AddAsync(user);
                 await _unitOfWork.CompleteAsync();
-            }
 
-            return Ok(new
-            {
-                message = "Người dùng đã được tạo thành công",
-                data = new
+                if (!string.IsNullOrWhiteSpace(dto.RoleName))
                 {
-                    user.Id,
-                    user.Username,
-                    user.Email,
-                    user.FullName,
-                    user.PhoneNumber,
-                    user.IsActive,
-                    RoleName = !string.IsNullOrWhiteSpace(dto.RoleName) ? dto.RoleName : null
+                    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
+                    if (role == null)
+                        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
+
+                    await _unitOfWork.UserRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
+                    await _unitOfWork.CompleteAsync();
                 }
-            });
+
+                return Ok(ApiResponse<object>.SuccessResponse(
+                    new
+                    {
+                        user.Id,
+                        user.Username,
+                        user.Email,
+                        user.FullName,
+                        user.PhoneNumber,
+                        user.IsActive,
+                        RoleName = dto.RoleName
+                    },
+                    "Người dùng đã được tạo thành công"
+                ));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi tạo người dùng", new[] { ex.Message }, 500));
+            }
         }
 
-
-
-
-
-        // ===== UPDATE =====
+        // ================== UPDATE ==================
         [HttpPut("{id}")]
         [Authorize(Policy = PermissionConstants.Users.Update)]
         public async Task<IActionResult> Update(int id, [FromBody] UserDto dto)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
-            if (user == null) return NotFound();
-
-            // Fix cứng Id, Username, Email
-            if (dto.Id != id || dto.Username != user.Username || dto.Email != user.Email)
+            try
             {
-                return BadRequest("Không được phép thay đổi Id, Username hoặc Email");
-            }
+                var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
+                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
 
-            // Update các field được phép sửa
-            user.FullName = dto.FullName;
-            user.PhoneNumber = dto.PhoneNumber;
-            user.IsActive = dto.IsActive;
+                if (dto.Id != id || dto.Username != user.Username || dto.Email != user.Email)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Không được phép thay đổi Id, Username hoặc Email", null, 400));
 
-            // === Update Role ===
-            user.UserRoles.Clear(); // xoá role cũ
+                user.FullName = dto.FullName;
+                user.PhoneNumber = dto.PhoneNumber;
+                user.IsActive = dto.IsActive;
 
-            if (!string.IsNullOrWhiteSpace(dto.RoleName))
-            {
-                var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                if (role == null)
-                    return BadRequest($"Role '{dto.RoleName}' không tồn tại");
+                user.UserRoles.Clear();
 
-                user.UserRoles.Add(new UserRole
+                if (!string.IsNullOrWhiteSpace(dto.RoleName))
                 {
-                    UserId = user.Id,
-                    RoleId = role.Id
-                });
-            }
+                    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
+                    if (role == null)
+                        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
 
-            _unitOfWork.UserRepository.Update(user);
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(new
-            {
-                message = "Người dùng đã cập nhật thành công",
-                data = new
-                {
-                    user.Id,
-                    user.Username,
-                    user.Email,
-                    user.FullName,
-                    user.PhoneNumber,
-                    user.IsActive,
-                    RoleName = user.UserRoles.Any()
-                        ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
-                        : null
+                    user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
                 }
-            });
+
+                _unitOfWork.UserRepository.Update(user);
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(ApiResponse<object>.SuccessResponse(
+                    new
+                    {
+                        user.Id,
+                        user.Username,
+                        user.Email,
+                        user.FullName,
+                        user.PhoneNumber,
+                        user.IsActive,
+                        RoleName = user.UserRoles.Any()
+                            ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
+                            : null
+                    },
+                    "Người dùng đã cập nhật thành công"
+                ));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi cập nhật người dùng", new[] { ex.Message }, 500));
+            }
         }
 
+        // ================== SET PASSWORD ==================
+        [HttpPut("{id}/set-password")]
+        [Authorize(Policy = PermissionConstants.Users.Update)]
+        public async Task<IActionResult> SetPassword(int id, [FromBody] SetPasswordRequest request)
+        {
+            try
+            {
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
 
+                if (!string.IsNullOrWhiteSpace(user.PasswordHash) && !string.IsNullOrWhiteSpace(request.CurrentPassword))
+                {
+                    bool isMatch = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
+                    if (!isMatch)
+                        return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu hiện tại không đúng", null, 400));
+                }
 
-        // ===== DELETE =====
-       
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+                _unitOfWork.UserRepository.Update(user);
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(ApiResponse<object>.SuccessResponse(
+                    new { user.Id, user.Username },
+                    "Mật khẩu đã được thay đổi thành công"
+                ));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi đặt mật khẩu", new[] { ex.Message }, 500));
+            }
+        }
+
+        // ================== DELETE ==================
         [HttpPut("{id}/DeleteUser")]
         [Authorize(Policy = PermissionConstants.Users.Delete)]
         public async Task<IActionResult> Delete(int id)
         {
-            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-            if (user == null) return NotFound();
-            user.IsActive = false;
-            user.IsDeleted = true;
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(new
+            try
             {
-                message = "Tài khoản đã bị xóa",
-                data = MapToDto(user)
-            });
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
+
+                user.IsActive = false;
+                user.IsDeleted = true;
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(ApiResponse<UserDto>.SuccessResponse(MapToDto(user), "Tài khoản đã bị xóa"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi xóa người dùng", new[] { ex.Message }, 500));
+            }
         }
 
+        // ================== ASSIGN / REMOVE ROLE ==================
+        [HttpPost("{userId}/assign-role")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignRole(int userId, [FromBody] AssignRoleRequest request)
+        {
+            try
+            {
+                await _unitOfWork.UserRoleRepository.AssignRoleAsync(userId, request.RoleId);
+                return Ok(ApiResponse<object>.SuccessResponse(
+                    new { userId, request.RoleId },
+                    "Vai trò đã được chỉ định thành công"
+                ));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi gán vai trò", new[] { ex.Message }, 500));
+            }
+        }
 
-        // ===== Helper mapping =====
+        [HttpDelete("{userId}/remove-role/{roleId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RemoveRole(int userId, int roleId)
+        {
+            try
+            {
+                await _unitOfWork.UserRoleRepository.RemoveRoleAsync(userId, roleId);
+                return Ok(ApiResponse<object>.SuccessResponse(
+                    new { userId, roleId },
+                    "Đã xóa vai trò thành công"
+                ));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi xóa vai trò", new[] { ex.Message }, 500));
+            }
+        }
 
+        // ================== HELPER ==================
         private UserDto MapToDto(User user)
         {
             return new UserDto
@@ -389,35 +470,5 @@ namespace BE__Small_Shop_Management_System.Controllers
                     : ""
             };
         }
-
-        [HttpPost("{userId}/assign-role")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AssignRole(int userId, [FromBody] AssignRoleRequest request)
-        {
-            await _unitOfWork.UserRoleRepository.AssignRoleAsync(userId, request.RoleId);
-            return Ok(new
-            {
-                message = "Vai trò đã được chỉ định thành công",
-                userId,
-                roleId = request.RoleId
-            });
-        }
-
-        // Xoá role khỏi user
-        [HttpDelete("{userId}/remove-role/{roleId}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> RemoveRole(int userId, int roleId)
-        {
-            await _unitOfWork.UserRoleRepository.RemoveRoleAsync(userId, roleId);
-            return Ok(new
-            {
-                message = "Đã xóa vai trò thành công",
-                userId,
-                roleId
-            });
-        }
     }
 }
-
-    
-
