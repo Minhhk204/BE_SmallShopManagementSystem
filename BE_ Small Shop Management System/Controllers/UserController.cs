@@ -298,7 +298,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.PhoneNumber,
                         user.IsActive,
                         RoleName = dto.RoleName
-                    },
+                    }, 
                     "Người dùng đã được tạo thành công"
                 ));
             }

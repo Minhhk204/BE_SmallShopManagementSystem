@@ -10,9 +10,14 @@
 
         public string PasswordHash { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
-        
         public bool IsDeleted { get; set; } = false;
-        public  ICollection<UserRole> UserRoles { get; set; }
+        public bool IsEmailConfirmed { get; set; } = false; // 🚩 chưa xác thực email
+
+        // Thêm trường xác thực email
+        public string? VerificationCode { get; set; }
+        public DateTime? VerificationExpiry { get; set; }
+
+        public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
         public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();

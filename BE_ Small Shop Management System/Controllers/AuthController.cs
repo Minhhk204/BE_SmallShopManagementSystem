@@ -19,11 +19,13 @@ namespace BE__Small_Shop_Management_System.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly EmailService _emailService;
 
-        public AuthController(AppDbContext context, IConfiguration configuration)
+        public AuthController(AppDbContext context, IConfiguration configuration, EmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         // =================== REGISTER ===================
@@ -49,6 +51,10 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
 
+                // Sinh mã OTP
+                var verificationCode = new Random().Next(100000, 999999).ToString();
+                var expiry = DateTime.Now.AddMinutes(10);
+
                 var user = new User
                 {
                     Username = registerDto.Username,
@@ -56,12 +62,16 @@ namespace BE__Small_Shop_Management_System.Controllers
                     FullName = registerDto.FullName ?? string.Empty,
                     PhoneNumber = registerDto.PhoneNumber ?? string.Empty,
                     PasswordHash = passwordHash,
-                    IsActive = true
+                    IsEmailConfirmed = false,
+                    IsActive = false, // mặc định chưa kích hoạt
+                    VerificationCode = verificationCode,
+                    VerificationExpiry = expiry
                 };
 
                 await _context.Users.AddAsync(user);
                 await _context.SaveChangesAsync();
 
+                // Gán role mặc định = Customer
                 var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
                 if (customerRole == null)
                 {
@@ -77,6 +87,11 @@ namespace BE__Small_Shop_Management_System.Controllers
                 });
                 await _context.SaveChangesAsync();
 
+                // Gửi email xác thực
+                var verificationLink = $"{Request.Scheme}://{Request.Host}/api/auth/verify-email?email={user.Email}&code={verificationCode}";
+                await _emailService.SendVerificationEmailAsync(user.Email, verificationCode, verificationLink);
+
+
                 var responseData = new
                 {
                     user.Id,
@@ -87,13 +102,47 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Role = customerRole.Name
                 };
 
-                return Ok(ApiResponse<object>.SuccessResponse(responseData, "Đăng ký thành công", 200));
+                return Ok(ApiResponse<object>.SuccessResponse(responseData, "Đăng ký thành công, vui lòng kiểm tra email để xác thực", 200));
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi khi đăng ký: {ex.Message}", null, 500));
             }
         }
+
+        // =================== VERIFY EMAIL ===================
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string email, [FromQuery] string code)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+                if (user == null)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 400));
+
+                if (user.IsEmailConfirmed)
+                    return Ok(ApiResponse<string>.SuccessResponse( "Email đã được xác thực trước đó", null, 200));
+
+                if (user.VerificationCode != code || user.VerificationExpiry < DateTime.Now)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Mã xác thực không hợp lệ hoặc đã hết hạn", null, 400));
+
+                // ✅ Update trạng thái
+                user.IsActive = true;
+                user.IsEmailConfirmed = true;   // 👈 Quan trọng
+                user.VerificationCode = null;
+                user.VerificationExpiry = null;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(ApiResponse<string>.SuccessResponse(null, "Xác thực email thành công", 200));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi khi xác thực email: {ex.Message}", null, 500));
+            }
+        }
+
 
         // =================== LOGIN ===================
         [HttpPost("login")]
@@ -106,10 +155,11 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
                 if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
-                    return Unauthorized(ApiResponse<string>.ErrorResponse("Sai thông tin đăng nhập", null, 401));
+                    return Unauthorized(ApiResponse<string>.ErrorResponse("Sai thông tin đăng nhập, vui lòng kiểm tra lại", null, 401));
 
                 if (user.IsDeleted) return Unauthorized(ApiResponse<string>.ErrorResponse("Tài khoản không tồn tại", null, 401));
-                if (!user.IsActive) return Unauthorized(ApiResponse<string>.ErrorResponse("Tài khoản đã bị khóa hoặc chưa được kích hoạt", null, 401));
+                if (!user.IsEmailConfirmed) return Unauthorized(ApiResponse<string>.ErrorResponse("Tài khoản chưa xác thực email", null, 401));
+                if (!user.IsActive) return Unauthorized(ApiResponse<string>.ErrorResponse("Tài khoản bị khóa hoặc chưa kích hoạt", null, 401));
 
                 var roles = await _context.UserRoles
                     .Where(ur => ur.UserId == user.Id)
