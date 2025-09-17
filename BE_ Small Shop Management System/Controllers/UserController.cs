@@ -10,6 +10,7 @@ using BE__Small_Shop_Management_System.Services;
 using BE__Small_Shop_Management_System.Extensions;
 using AutoMapper;
 using BE__Small_Shop_Management_System.Helper;
+using static BE__Small_Shop_Management_System.Constants.PermissionConstants;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -278,13 +279,30 @@ namespace BE__Small_Shop_Management_System.Controllers
                 await _unitOfWork.UserRepository.AddAsync(user);
                 await _unitOfWork.CompleteAsync();
 
-                if (!string.IsNullOrWhiteSpace(dto.RoleName))
-                {
-                    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                    if (role == null)
-                        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
+                //if (!string.IsNullOrWhiteSpace(dto.RoleName))
+                //{
+                //    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
+                //    if (role == null)
+                //        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
 
-                    await _unitOfWork.UserRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
+                //    await _unitOfWork.UserRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
+                //    await _unitOfWork.CompleteAsync();
+                //}
+                // Gán nhiều roles
+                if (dto.RoleName != null && dto.RoleName.Any())
+                {
+                    foreach (var roleName in dto.RoleName)
+                    {
+                        var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == roleName);
+                        if (role == null)
+                            return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{roleName}' không tồn tại", null, 400));
+
+                        await _unitOfWork.UserRoleRepository.AddAsync(new UserRole
+                        {
+                            UserId = user.Id,
+                            RoleId = role.Id
+                        });
+                    }
                     await _unitOfWork.CompleteAsync();
                 }
 
@@ -297,7 +315,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.FullName,
                         user.PhoneNumber,
                         user.IsActive,
-                        RoleName = dto.RoleName
+                        //RoleName = dto.RoleName
+                        Roles = dto.RoleName
                     },
                     "Người dùng đã được tạo thành công"
                 ));
@@ -327,13 +346,25 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 user.UserRoles.Clear();
 
-                if (!string.IsNullOrWhiteSpace(dto.RoleName))
-                {
-                    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                    if (role == null)
-                        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
+                //if (!string.IsNullOrWhiteSpace(dto.RoleName))
+                //{
+                //    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
+                //    if (role == null)
+                //        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
 
-                    user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+                //    user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+                //}
+                // Gán lại roles mới
+                if (dto.RoleName != null && dto.RoleName.Any())
+                {
+                    foreach (var roleName in dto.RoleName)
+                    {
+                        var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == roleName);
+                        if (role == null)
+                            return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{roleName}' không tồn tại", null, 400));
+
+                        user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+                    }
                 }
 
                 _unitOfWork.UserRepository.Update(user);
@@ -348,9 +379,10 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.FullName,
                         user.PhoneNumber,
                         user.IsActive,
-                        RoleName = user.UserRoles.Any()
-                            ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
-                            : null
+                        //RoleName = user.UserRoles.Any()
+                        //    ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
+                        //    : null
+                        RoleName = user.UserRoles.Select(ur => ur.Role.Name).ToList()
                     },
                     "Người dùng đã cập nhật thành công"
                 ));
@@ -465,9 +497,12 @@ namespace BE__Small_Shop_Management_System.Controllers
                 PhoneNumber = user.PhoneNumber,
                 IsActive = user.IsActive,
                 IsDeleted = user.IsDeleted,
+                //RoleName = user.UserRoles != null && user.UserRoles.Any()
+                //    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
+                //    : ""
                 RoleName = user.UserRoles != null && user.UserRoles.Any()
-                    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
-                    : ""
+                ? user.UserRoles.Select(ur => ur.Role.Name).ToList()
+                : new List<string>()
             };
         }
     }
