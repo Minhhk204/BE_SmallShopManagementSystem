@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+
 using System.Text.RegularExpressions;
 
 namespace BE__Small_Shop_Management_System.Controllers
@@ -34,11 +35,13 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                if (!IsValidEmail(registerDto.Email))
+                if (!ValidationHelper.IsValidEmail(registerDto.Email))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Email không hợp lệ", null, 400));
 
-                if (!string.IsNullOrEmpty(registerDto.PhoneNumber) && !IsValidPhoneNumber(registerDto.PhoneNumber))
+                if (!string.IsNullOrEmpty(registerDto.PhoneNumber) &&
+                    !ValidationHelper.IsValidPhoneNumber(registerDto.PhoneNumber))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ", null, 400));
+
 
                 var exists = await _context.Users.AnyAsync(u =>
                     u.Username == registerDto.Username ||
@@ -61,6 +64,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Email = registerDto.Email,
                     FullName = registerDto.FullName ?? string.Empty,
                     PhoneNumber = registerDto.PhoneNumber ?? string.Empty,
+                    Address = registerDto.Address ?? string.Empty,
+                    CreatedAt = DateTime.Now,
                     PasswordHash = passwordHash,
                     IsEmailConfirmed = false,
                     IsActive = false, // mặc định chưa kích hoạt
@@ -99,6 +104,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                     user.Email,
                     user.FullName,
                     user.PhoneNumber,
+                    user.Address,
+                    user.CreatedAt,
                     Role = customerRole.Name
                 };
 
@@ -150,7 +157,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                if (!IsValidEmail(loginDto.Email))
+                if (!ValidationHelper.IsValidEmail(loginDto.Email))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Email không hợp lệ", null, 400));
 
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
@@ -319,24 +326,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private bool IsValidPhoneNumber(string phone)
-        {
-            if (string.IsNullOrWhiteSpace(phone)) return false;
-            var regex = new Regex(@"^0\d{9}$");
-            return regex.IsMatch(phone);
-        }
-
-        private bool IsValidEmail(string email)
-        {
-            try
-            {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+      
     }
 }

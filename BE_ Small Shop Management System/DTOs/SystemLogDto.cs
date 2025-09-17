@@ -8,5 +8,8 @@
         public string Action { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public string? Data { get; set; }
+        public double Duration { get; set; }
+        public string ApplicationName { get; set; } = "Small Shop System";
+
     }
 }

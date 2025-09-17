@@ -185,18 +185,22 @@ namespace BE__Small_Shop_Management_System.Controllers
             [FromQuery] string? username,
             [FromQuery] string? phone,
             [FromQuery] string? fullName,
+            [FromQuery] string? atDress,
+            [FromQuery] DateTime? createdAt,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var query = _unitOfWork.UserRepository.Query();
-
+                var query = _unitOfWork.UserRepository.Query()
+                   .Where(u => !u.IsDeleted);
                 if (isActive.HasValue) query = query.Where(u => u.IsActive == isActive.Value);
                 if (!string.IsNullOrEmpty(email)) query = query.Where(u => u.Email.Contains(email));
                 if (!string.IsNullOrEmpty(username)) query = query.Where(u => u.Username.Contains(username));
                 if (!string.IsNullOrEmpty(phone)) query = query.Where(u => u.PhoneNumber.Contains(phone));
                 if (!string.IsNullOrEmpty(fullName)) query = query.Where(u => u.FullName.Contains(fullName));
+                if (!string.IsNullOrEmpty(atDress)) query = query.Where(u => u.Address != null && u.Address.Contains(atDress));
+                if (createdAt.HasValue) query = query.Where(u => u.CreatedAt.Date == createdAt.Value.Date);
 
                 var totalItems = await query.CountAsync();
 
@@ -211,6 +215,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                         Email = u.Email,
                         FullName = u.FullName,
                         PhoneNumber = u.PhoneNumber,
+                        Address = u.Address,
+                        CreatedAt = u.CreatedAt,
                         IsActive = u.IsActive
                     })
                     .ToListAsync();
@@ -270,10 +276,33 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Email))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng và Email là bắt buộc", null, 400));
 
-                var exists = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username);
-                if (exists)
+                // 🔹 Check trùng Username
+                var existsUsername = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username);
+                if (existsUsername)
                     return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng đã tồn tại", null, 400));
 
+                // 🔹 Check trùng Email
+                var existsEmail = await _unitOfWork.UserRepository.ExistsAsync(u => u.Email == dto.Email);
+                if (existsEmail)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Email đã tồn tại", null, 400));
+
+                // 🔹 Check trùng Phone
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                {
+                    var existsPhone = await _unitOfWork.UserRepository.ExistsAsync(u => u.PhoneNumber == dto.PhoneNumber);
+                    if (existsPhone)
+                        return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại đã tồn tại", null, 400));
+                }
+
+                // 🔹 Validate định dạng Email
+                if (!ValidationHelper.IsValidEmail(dto.Email))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không đúng định dạng", null, 400));
+
+                // 🔹 Validate định dạng Phone
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && !ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)", null, 400));
+
+                // 🔹 Hash password
                 string passwordHash = string.IsNullOrWhiteSpace(dto.Password)
                     ? string.Empty
                     : BCrypt.Net.BCrypt.HashPassword(dto.Password);
@@ -284,6 +313,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Email = dto.Email,
                     FullName = dto.FullName,
                     PhoneNumber = dto.PhoneNumber,
+                    Address = dto.Address,
                     PasswordHash = passwordHash,
                     IsActive = dto.IsActive
                 };
@@ -291,16 +321,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 await _unitOfWork.UserRepository.AddAsync(user);
                 await _unitOfWork.CompleteAsync();
 
-                //if (!string.IsNullOrWhiteSpace(dto.RoleName))
-                //{
-                //    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                //    if (role == null)
-                //        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
-
-                //    await _unitOfWork.UserRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
-                //    await _unitOfWork.CompleteAsync();
-                //}
-                // Gán nhiều roles
+                // 🔹 Gán roles (nếu có)
                 if (dto.RoleName != null && dto.RoleName.Any())
                 {
                     foreach (var roleName in dto.RoleName)
@@ -327,7 +348,6 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.FullName,
                         user.PhoneNumber,
                         user.IsActive,
-                        //RoleName = dto.RoleName
                         Roles = dto.RoleName
                     },
                     "Người dùng đã được tạo thành công"
@@ -338,6 +358,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi tạo người dùng", new[] { ex.Message }, 500));
             }
         }
+
 
         // ================== UPDATE ==================
         [HttpPut("{id}")]

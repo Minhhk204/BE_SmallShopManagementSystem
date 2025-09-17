@@ -7,6 +7,9 @@
         public string? Action { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
+        public double? MinDuration { get; set; }
+        public double? MaxDuration { get; set; }
+
     }
 
 }
