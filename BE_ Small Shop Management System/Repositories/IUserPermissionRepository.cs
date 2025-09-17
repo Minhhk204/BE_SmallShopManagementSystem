@@ -1,4 +1,5 @@
 ﻿using BE__Small_Shop_Management_System.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BE__Small_Shop_Management_System.Repositories
 {
@@ -11,5 +12,7 @@ namespace BE__Small_Shop_Management_System.Repositories
 
         
         Task RemoveAsync(int userId, IEnumerable<int> permissionIds);
+
+        Task RemoveAllByUserIdAsync(int userId);
     }
 }

@@ -8,8 +8,11 @@ using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.Services;
 using BE__Small_Shop_Management_System.Extensions;
+<<<<<<< HEAD
 using AutoMapper;
 using BE__Small_Shop_Management_System.Helper;
+=======
+>>>>>>> 0a9ebdc51ae5d7340f24df443d257263092c0d9a
 using static BE__Small_Shop_Management_System.Constants.PermissionConstants;
 
 namespace BE__Small_Shop_Management_System.Controllers
@@ -53,6 +56,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignPermissionsToUser(int userId, [FromBody] AssignPermissionsRequest request)
         {
+<<<<<<< HEAD
             try
             {
                 var currentPermissions = await _unitOfWork.UserPermissionRepository.GetPermissionsByUserIdAsync(userId);
@@ -90,6 +94,44 @@ namespace BE__Small_Shop_Management_System.Controllers
             {
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi gán quyền người dùng", new[] { ex.Message }, 500));
             }
+=======
+            // Xóa toàn bộ quyền cũ
+            await _unitOfWork.UserPermissionRepository.RemoveAllByUserIdAsync(userId);
+
+            // Thêm lại theo danh sách request (chỉ những cái granted = true)
+            var grantedIds = request.Permissions
+                .Where(p => p.Granted)
+                .Select(p => p.Id)
+                .ToList();
+
+            if (grantedIds.Any())
+            {
+                await _unitOfWork.UserPermissionRepository.AssignAsync(userId, grantedIds);
+            }
+
+            await _unitOfWork.CompleteAsync();
+
+            // lấy all permissions để trả về kèm trạng thái
+            var allPermissions = await _unitOfWork.PermissionRepository.GetAllPermissionsAsync();
+            var updated = await _unitOfWork.UserPermissionRepository.GetPermissionsByUserIdAsync(userId);
+            var updateGranted = updated.Select(p => p.Id).ToHashSet();
+
+            var result = allPermissions.Select(p => new
+            {
+                id = p.Id,
+                name = p.Name,
+                module = p.Module,
+                description = p.Description,
+                granted = updateGranted.Contains(p.Id)
+            });
+
+            return Ok(new
+            {
+                message = "Quyền người dùng được cập nhật",
+                userId,
+                permissions = result
+            });
+>>>>>>> 0a9ebdc51ae5d7340f24df443d257263092c0d9a
         }
 
         // ================== ACTIVATE / DEACTIVATE ==================
