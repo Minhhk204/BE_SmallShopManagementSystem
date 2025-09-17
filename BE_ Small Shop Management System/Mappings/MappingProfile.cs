@@ -14,8 +14,8 @@ namespace BE__Small_Shop_Management_System.Mappings
            .ForMember(dest => dest.RoleName,
                opt => opt.MapFrom(src =>
                 src.UserRoles != null && src.UserRoles.Any()
-                ? string.Join(", ", src.UserRoles.Select(ur => ur.Role.Name))
-                : ""
+                ? src.UserRoles.Select(ur => ur.Role.Name).ToList()
+                : new List<string>()
                  ))
                .ReverseMap(); // Entity → DTO
 

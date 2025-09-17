@@ -58,7 +58,5 @@ namespace BE__Small_Shop_Management_System.Repositories
                 .ThenInclude(up => up.Permission)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
-
-
     }
 }

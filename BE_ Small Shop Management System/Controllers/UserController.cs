@@ -10,6 +10,7 @@ using BE__Small_Shop_Management_System.Services;
 using BE__Small_Shop_Management_System.Extensions;
 using AutoMapper;
 using BE__Small_Shop_Management_System.Helper;
+using static BE__Small_Shop_Management_System.Constants.PermissionConstants;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -54,22 +55,26 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                var currentPermissions = await _unitOfWork.UserPermissionRepository.GetPermissionsByUserIdAsync(userId);
-                var currentIds = currentPermissions.Select(p => p.Id).ToHashSet();
+                // Xóa toàn bộ quyền cũ
+                await _unitOfWork.UserPermissionRepository.RemoveAllByUserIdAsync(userId);
 
-                foreach (var item in request.Permissions)
+                // Thêm lại theo danh sách request (chỉ những cái granted = true)
+                var grantedIds = request.Permissions
+                    .Where(p => p.Granted)
+                    .Select(p => p.Id)
+                    .ToList();
+
+                if (grantedIds.Any())
                 {
-                    if (item.Granted && !currentIds.Contains(item.Id))
-                        await _unitOfWork.UserPermissionRepository.AssignAsync(userId, new[] { item.Id });
-                    else if (!item.Granted && currentIds.Contains(item.Id))
-                        await _unitOfWork.UserPermissionRepository.RemoveAsync(userId, new[] { item.Id });
+                    await _unitOfWork.UserPermissionRepository.AssignAsync(userId, grantedIds);
                 }
 
                 await _unitOfWork.CompleteAsync();
 
+                // lấy all permissions để trả về kèm trạng thái
                 var allPermissions = await _unitOfWork.PermissionRepository.GetAllPermissionsAsync();
                 var updated = await _unitOfWork.UserPermissionRepository.GetPermissionsByUserIdAsync(userId);
-                var grantedIds = updated.Select(p => p.Id).ToHashSet();
+                var updateGranted = updated.Select(p => p.Id).ToHashSet();
 
                 var result = allPermissions.Select(p => new
                 {
@@ -77,17 +82,25 @@ namespace BE__Small_Shop_Management_System.Controllers
                     name = p.Name,
                     module = p.Module,
                     description = p.Description,
-                    granted = grantedIds.Contains(p.Id)
+                    granted = updateGranted.Contains(p.Id)
                 });
 
                 return Ok(ApiResponse<object>.SuccessResponse(
-                    new { userId, permissions = result },
+                    new
+                    {
+                        userId,
+                        permissions = result
+                    },
                     "Quyền người dùng được cập nhật"
                 ));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi gán quyền người dùng", new[] { ex.Message }, 500));
+                return StatusCode(500, ApiResponse<string>.ErrorResponse(
+                    "Lỗi khi gán quyền người dùng",
+                    new[] { ex.Message },
+                    500
+                ));
             }
         }
 
@@ -278,13 +291,30 @@ namespace BE__Small_Shop_Management_System.Controllers
                 await _unitOfWork.UserRepository.AddAsync(user);
                 await _unitOfWork.CompleteAsync();
 
-                if (!string.IsNullOrWhiteSpace(dto.RoleName))
-                {
-                    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                    if (role == null)
-                        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
+                //if (!string.IsNullOrWhiteSpace(dto.RoleName))
+                //{
+                //    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
+                //    if (role == null)
+                //        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
 
-                    await _unitOfWork.UserRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
+                //    await _unitOfWork.UserRoleRepository.AddAsync(new UserRole { UserId = user.Id, RoleId = role.Id });
+                //    await _unitOfWork.CompleteAsync();
+                //}
+                // Gán nhiều roles
+                if (dto.RoleName != null && dto.RoleName.Any())
+                {
+                    foreach (var roleName in dto.RoleName)
+                    {
+                        var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == roleName);
+                        if (role == null)
+                            return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{roleName}' không tồn tại", null, 400));
+
+                        await _unitOfWork.UserRoleRepository.AddAsync(new UserRole
+                        {
+                            UserId = user.Id,
+                            RoleId = role.Id
+                        });
+                    }
                     await _unitOfWork.CompleteAsync();
                 }
 
@@ -297,8 +327,9 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.FullName,
                         user.PhoneNumber,
                         user.IsActive,
-                        RoleName = dto.RoleName
-                    }, 
+                        //RoleName = dto.RoleName
+                        Roles = dto.RoleName
+                    },
                     "Người dùng đã được tạo thành công"
                 ));
             }
@@ -327,13 +358,25 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 user.UserRoles.Clear();
 
-                if (!string.IsNullOrWhiteSpace(dto.RoleName))
-                {
-                    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                    if (role == null)
-                        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
+                //if (!string.IsNullOrWhiteSpace(dto.RoleName))
+                //{
+                //    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
+                //    if (role == null)
+                //        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
 
-                    user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+                //    user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+                //}
+                // Gán lại roles mới
+                if (dto.RoleName != null && dto.RoleName.Any())
+                {
+                    foreach (var roleName in dto.RoleName)
+                    {
+                        var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == roleName);
+                        if (role == null)
+                            return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{roleName}' không tồn tại", null, 400));
+
+                        user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+                    }
                 }
 
                 _unitOfWork.UserRepository.Update(user);
@@ -348,9 +391,10 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.FullName,
                         user.PhoneNumber,
                         user.IsActive,
-                        RoleName = user.UserRoles.Any()
-                            ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
-                            : null
+                        //RoleName = user.UserRoles.Any()
+                        //    ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
+                        //    : null
+                        RoleName = user.UserRoles.Select(ur => ur.Role.Name).ToList()
                     },
                     "Người dùng đã cập nhật thành công"
                 ));
@@ -465,9 +509,12 @@ namespace BE__Small_Shop_Management_System.Controllers
                 PhoneNumber = user.PhoneNumber,
                 IsActive = user.IsActive,
                 IsDeleted = user.IsDeleted,
+                //RoleName = user.UserRoles != null && user.UserRoles.Any()
+                //    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
+                //    : ""
                 RoleName = user.UserRoles != null && user.UserRoles.Any()
-                    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
-                    : ""
+                ? user.UserRoles.Select(ur => ur.Role.Name).ToList()
+                : new List<string>()
             };
         }
     }
