@@ -15,7 +15,7 @@ namespace BE__Small_Shop_Management_System.DataContext
                     Id = idx + 1,
                     Name = key,                          // "Users.View"
                     Module = key.Split('.')[0],          // "Users"
-                    Description = key.Replace('.', ' ')  // tùy bạn mô tả đẹp hơn
+                    Description = key.Replace('.', ' ')  
                 }).ToList();
 
             modelBuilder.Entity<Permission>().HasData(permissions);
@@ -35,6 +35,8 @@ namespace BE__Small_Shop_Management_System.DataContext
                 Email = "admin@system.com",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
                 IsActive = true,
+                IsEmailConfirmed = true,
+                IsDeleted = false,
                 FullName = "Nguyen Van Minh",
                 PhoneNumber = "0123456789"
             });
