@@ -4,6 +4,7 @@ using BE__Small_Shop_Management_System.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE__Small_Shop_Management_System.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250917084639_addAttributeForUser")]
+    partial class addAttributeForUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,7 +217,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9415),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5375),
                             Description = "Users View",
                             Module = "Users",
                             Name = "Users.View"
@@ -222,7 +225,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9449),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5426),
                             Description = "Users Create",
                             Module = "Users",
                             Name = "Users.Create"
@@ -230,7 +233,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9458),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5436),
                             Description = "Users Update",
                             Module = "Users",
                             Name = "Users.Update"
@@ -238,7 +241,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9462),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5441),
                             Description = "Users Delete",
                             Module = "Users",
                             Name = "Users.Delete"
@@ -246,7 +249,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9467),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5446),
                             Description = "Users Lock",
                             Module = "Users",
                             Name = "Users.Lock"
@@ -254,7 +257,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9475),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5455),
                             Description = "Users Unlock",
                             Module = "Users",
                             Name = "Users.Unlock"
@@ -262,7 +265,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9490),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5475),
                             Description = "Roles View",
                             Module = "Roles",
                             Name = "Roles.View"
@@ -270,7 +273,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9494),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5480),
                             Description = "Roles Create",
                             Module = "Roles",
                             Name = "Roles.Create"
@@ -278,7 +281,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9498),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5484),
                             Description = "Roles Update",
                             Module = "Roles",
                             Name = "Roles.Update"
@@ -286,7 +289,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 10,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9503),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5489),
                             Description = "Roles Delete",
                             Module = "Roles",
                             Name = "Roles.Delete"
@@ -294,7 +297,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 11,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9510),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5497),
                             Description = "Permissions View",
                             Module = "Permissions",
                             Name = "Permissions.View"
@@ -302,7 +305,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 12,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9515),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5505),
                             Description = "Permissions Delete",
                             Module = "Permissions",
                             Name = "Permissions.Delete"
@@ -310,7 +313,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 13,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9520),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5514),
                             Description = "Products View",
                             Module = "Products",
                             Name = "Products.View"
@@ -318,7 +321,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 14,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9526),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5520),
                             Description = "Products Create",
                             Module = "Products",
                             Name = "Products.Create"
@@ -326,7 +329,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 15,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9569),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5529),
                             Description = "Products Update",
                             Module = "Products",
                             Name = "Products.Update"
@@ -334,7 +337,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 16,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9573),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5578),
                             Description = "Products Delete",
                             Module = "Products",
                             Name = "Products.Delete"
@@ -342,7 +345,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 17,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9581),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5593),
                             Description = "Orders View",
                             Module = "Orders",
                             Name = "Orders.View"
@@ -350,7 +353,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 18,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9585),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5598),
                             Description = "Orders Create",
                             Module = "Orders",
                             Name = "Orders.Create"
@@ -358,7 +361,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 19,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9588),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5603),
                             Description = "Orders Update",
                             Module = "Orders",
                             Name = "Orders.Update"
@@ -366,7 +369,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 20,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9591),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5609),
                             Description = "Orders Delete",
                             Module = "Orders",
                             Name = "Orders.Delete"
@@ -374,7 +377,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 21,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9594),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5613),
                             Description = "Orders Process",
                             Module = "Orders",
                             Name = "Orders.Process"
@@ -382,7 +385,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 22,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9598),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5620),
                             Description = "Inventory View",
                             Module = "Inventory",
                             Name = "Inventory.View"
@@ -390,7 +393,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 23,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9603),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5624),
                             Description = "Inventory Import",
                             Module = "Inventory",
                             Name = "Inventory.Import"
@@ -398,7 +401,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 24,
-                            CreatedAt = new DateTime(2025, 9, 17, 9, 0, 39, 91, DateTimeKind.Utc).AddTicks(9609),
+                            CreatedAt = new DateTime(2025, 9, 17, 8, 46, 38, 128, DateTimeKind.Utc).AddTicks(5631),
                             Description = "Reports ViewDashboard",
                             Module = "Reports",
                             Name = "Reports.ViewDashboard"
@@ -655,18 +658,11 @@ namespace BE__Small_Shop_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ApplicationName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Data")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Duration")
-                        .HasColumnType("float");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
@@ -736,13 +732,13 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 9, 17, 16, 0, 39, 91, DateTimeKind.Local).AddTicks(9897),
+                            CreatedAt = new DateTime(2025, 9, 17, 15, 46, 38, 128, DateTimeKind.Local).AddTicks(6018),
                             Email = "admin@system.com",
                             FullName = "Nguyen Van Minh",
                             IsActive = true,
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            PasswordHash = "$2a$11$6qXy20Dg0akj4IBXg8K5suSkcFH43oilvnDYzyLT/Dm8NyzQYsnQe",
+                            PasswordHash = "$2a$11$revU/7vTSdMI.T57s.hDd.zv2rDva2.6RfU8vWq4zqRt0I9t9DxG.",
                             PhoneNumber = "0123456789",
                             Username = "admin"
                         });

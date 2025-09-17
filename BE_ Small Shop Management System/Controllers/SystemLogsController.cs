@@ -35,6 +35,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                 UserName = l.User?.Username,
                 Action = l.Action,
                 CreatedAt = l.CreatedAt,
+                Duration = l.Duration,
+                ApplicationName = l.ApplicationName,
                 Data = l.Data
             });
 
@@ -56,6 +58,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                 UserName = log.User?.Username,
                 Action = log.Action,
                 CreatedAt = log.CreatedAt,
+                Duration = log.Duration,
+                ApplicationName = log.ApplicationName,
                 Data = log.Data
             };
 
@@ -85,6 +89,13 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             if (filter.ToDate.HasValue)
                 query = query.Where(l => l.CreatedAt <= filter.ToDate.Value);
+            // ✅ Lọc theo khoảng duration
+            if (filter.MinDuration.HasValue)
+                query = query.Where(l => l.Duration >= filter.MinDuration.Value);
+
+            if (filter.MaxDuration.HasValue)
+                query = query.Where(l => l.Duration <= filter.MaxDuration.Value);
+
 
             // ✅ Tổng số log sau khi lọc
             var totalCount = await query.CountAsync();
@@ -104,6 +115,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                     UserName = l.User?.Username,
                     Action = l.Action,
                     CreatedAt = l.CreatedAt,
+                    Duration = l.Duration,
+                    ApplicationName = l.ApplicationName,
                     Data = l.Data
                 }),
                 TotalCount = totalCount,

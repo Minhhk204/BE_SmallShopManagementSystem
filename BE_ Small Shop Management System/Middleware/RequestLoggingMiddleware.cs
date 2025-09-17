@@ -17,6 +17,8 @@ namespace BE__Small_Shop_Management_System.Middleware
 
         public async Task InvokeAsync(HttpContext context, AppDbContext db)
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
             var ip = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()
                      ?? context.Connection.RemoteIpAddress?.ToString();
 
@@ -24,7 +26,6 @@ namespace BE__Small_Shop_Management_System.Middleware
             var path = context.Request.Path + context.Request.QueryString;
             var (userId, userName) = GetUserInfoFromContext(context);
 
-            // Đọc request body (buffer để không chặn pipeline)
             context.Request.EnableBuffering();
             string body = "";
             using (var reader = new StreamReader(context.Request.Body, Encoding.UTF8, true, 1024, true))
@@ -33,11 +34,11 @@ namespace BE__Small_Shop_Management_System.Middleware
                 context.Request.Body.Position = 0;
             }
 
-            // Headers
             var headers = string.Join("\n", context.Request.Headers.Select(h => $"{h.Key}: {h.Value}"));
 
             await _next(context);
 
+            stopwatch.Stop();
             var statusCode = context.Response.StatusCode;
 
             var log = new SystemLog
@@ -47,14 +48,15 @@ namespace BE__Small_Shop_Management_System.Middleware
                 User = userId.HasValue ? await db.Users.FindAsync(userId) : null,
                 Action = $"{method} {path} ({statusCode})",
                 Data = $"IP: {ip}\nHeaders:\n{headers}\nBody: {body}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Duration = (int)stopwatch.ElapsedMilliseconds, // thời gian thực thi
+                ApplicationName = "Small Shop System"
             };
-
 
             db.SystemLogs.Add(log);
             await db.SaveChangesAsync();
-
         }
+
 
         private (int? userId, string? userName) GetUserInfoFromContext(HttpContext context)
         {

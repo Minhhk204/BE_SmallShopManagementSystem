@@ -10,5 +10,9 @@
         public string Action { get; set; } = null!;   // "Create Product", "Login", "Update Order"...
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string? Data { get; set; } // JSON mô tả dữ liệu
+
+        public double Duration { get; set; }
+        public string ApplicationName { get; set; } = "Small Shop System";
+
     }
 }

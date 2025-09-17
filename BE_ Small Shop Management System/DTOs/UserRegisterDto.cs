@@ -7,5 +7,6 @@
         public string Password { get; set; }   // có thể hash sau khi nhận
         public string? FullName { get; set; }
         public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
     }
 }
