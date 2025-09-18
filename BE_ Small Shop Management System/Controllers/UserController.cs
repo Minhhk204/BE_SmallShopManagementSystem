@@ -190,7 +190,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             [FromQuery] string? atDress,
             [FromQuery] DateTime? createdAt,
             [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 2)
         {
             try
             {
@@ -243,30 +243,63 @@ namespace BE__Small_Shop_Management_System.Controllers
         // ================== SEARCH ==================
         [HttpGet("search")]
         [Authorize(Policy = PermissionConstants.Users.View)]
-        public async Task<IActionResult> Search([FromQuery] string keyword)
+        public async Task<IActionResult> Search(
+        [FromQuery] string keyword,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(keyword))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Từ khóa là bắt buộc", null, 400));
 
-                var users = await _unitOfWork.UserRepository.FindAsync(u =>
-                    u.Username.ToLower().Contains(keyword.ToLower()) ||
-                    u.Email.ToLower().Contains(keyword.ToLower()) ||
-                    (!string.IsNullOrEmpty(u.FullName) && u.FullName.ToLower().Contains(keyword.ToLower()))
-                );
+                var query = _unitOfWork.UserRepository.Query()
+                    .Where(u => !u.IsDeleted &&
+                        (
+                            u.Username.ToLower().Contains(keyword.ToLower()) ||
+                            u.Email.ToLower().Contains(keyword.ToLower()) ||
+                            (!string.IsNullOrEmpty(u.FullName) && u.FullName.ToLower().Contains(keyword.ToLower()))
+                        ));
 
-                if (!users.Any())
+                var totalItems = await query.CountAsync();
+
+                if (totalItems == 0)
                     return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy người dùng nào khớp với từ khóa", null, 404));
 
-                var result = users.Select(u => MapToDto(u));
-                return Ok(ApiResponse<object>.SuccessResponse(result, "Tìm kiếm người dùng thành công"));
+                var items = await query
+                    .OrderBy(u => u.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(u => new UserDto
+                    {
+                        Id = u.Id,
+                        Username = u.Username,
+                        Email = u.Email,
+                        FullName = u.FullName,
+                        PhoneNumber = u.PhoneNumber,
+                        Address = u.Address,
+                        CreatedAt = u.CreatedAt,
+                        IsActive = u.IsActive
+                    })
+                    .ToListAsync();
+
+                var result = new PagedResult<UserDto>
+                {
+                    TotalItems = totalItems,
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Items = items
+                };
+
+                return Ok(ApiResponse<PagedResult<UserDto>>.SuccessResponse(result, "Tìm kiếm người dùng thành công"));
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi tìm kiếm người dùng", new[] { ex.Message }, 500));
             }
         }
+
 
         // ================== CREATE ==================
         [HttpPost]
@@ -370,9 +403,12 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
+                // Lấy user kèm roles
                 var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
                 if (user == null)
                     return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
+
+                // 🔹 Check trùng Phone// 🔹 Check trùng Phone
                 if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
                 {
                     var existsPhone = await _unitOfWork.UserRepository.ExistsAsync(
@@ -394,10 +430,12 @@ namespace BE__Small_Shop_Management_System.Controllers
                 }
 
                 // Cập nhật thông tin cơ bản
+
                 user.FullName = dto.FullName;
                 user.PhoneNumber = dto.PhoneNumber;
                 user.Address = dto.Address;
                 user.IsActive = dto.IsActive;
+
 
                 // Reset lại roles
                 user.UserRoles.Clear();
@@ -414,9 +452,11 @@ namespace BE__Small_Shop_Management_System.Controllers
                     }
                 }
 
+                // Cập nhật user
                 _unitOfWork.UserRepository.Update(user);
                 await _unitOfWork.CompleteAsync();
 
+                // Trả về kết quả
                 return Ok(ApiResponse<object>.SuccessResponse(
                     new
                     {
@@ -434,7 +474,9 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi cập nhật người dùng", new[] { ex.Message }, 500));
+                // Log chi tiết để debug
+                return StatusCode(500, ApiResponse<string>.ErrorResponse(
+                    "Lỗi khi cập nhật người dùng", new[] { ex.ToString() }, 500));
             }
         }
 
