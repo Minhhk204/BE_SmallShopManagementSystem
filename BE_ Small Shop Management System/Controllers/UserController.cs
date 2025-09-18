@@ -647,6 +647,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 Email = user.Email,
                 FullName = user.FullName,
                 PhoneNumber = user.PhoneNumber,
+                Address = user.Address,
                 IsActive = user.IsActive,
                 IsDeleted = user.IsDeleted,
                 //RoleName = user.UserRoles != null && user.UserRoles.Any()
