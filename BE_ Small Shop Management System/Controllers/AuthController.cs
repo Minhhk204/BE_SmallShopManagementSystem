@@ -3,6 +3,7 @@ using BE__Small_Shop_Management_System.DataContext;
 using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
+using BE__Small_Shop_Management_System.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -94,7 +95,11 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 // Gửi email xác thực
                 var verificationLink = $"{Request.Scheme}://{Request.Host}/api/auth/verify-email?email={user.Email}&code={verificationCode}";
-                await _emailService.SendVerificationEmailAsync(user.Email, verificationCode, verificationLink);
+                var subject = "Xác minh email đăng ký tài khoản";
+                var body = EmailTemplateHelper.GetRegisterBody(verificationCode, verificationLink);
+
+                await _emailService.SendEmailAsync(user.Email, subject, body);
+
 
 
                 var responseData = new

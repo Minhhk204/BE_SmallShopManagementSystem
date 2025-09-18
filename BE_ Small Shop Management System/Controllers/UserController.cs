@@ -408,13 +408,17 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (user == null)
                     return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
 
-                // 🔹 Check trùng Phone
+                // 🔹 Check trùng Phone// 🔹 Check trùng Phone
                 if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
                 {
-                    var existsPhone = await _unitOfWork.UserRepository.ExistsAsync(u => u.PhoneNumber == dto.PhoneNumber);
+                    var existsPhone = await _unitOfWork.UserRepository.ExistsAsync(
+                        u => u.PhoneNumber == dto.PhoneNumber && u.Id != id
+                    );
+
                     if (existsPhone)
                         return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại đã tồn tại", null, 400));
                 }
+
                 // 🔹 Validate định dạng Phone
                 if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && !ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)", null, 400));
@@ -592,16 +596,33 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 // Link reset password (cho frontend dùng)
                 var resetLink = $"{Request.Scheme}://{Request.Host}/reset-password?email={user.Email}&code={resetCode}";
+                var subject = "Đặt lại mật khẩu tài khoản";
+                var body = EmailTemplateHelper.GetForgotPasswordBody(resetCode, resetLink);
 
-                // Gửi mail
-                await _emailService.SendVerificationEmailAsync(user.Email, resetCode, resetLink);
+                await _emailService.SendEmailAsync(user.Email, subject, body);
 
-                return Ok(ApiResponse<string>.SuccessResponse(null, "Vui lòng kiểm tra email để đặt lại mật khẩu", 200));
+
+                // Ẩn bớt email để bảo mật
+                var maskedEmail = MaskEmail(user.Email);
+
+                return Ok(ApiResponse<object>.SuccessResponse(
+                    new { Email = maskedEmail },
+                    $"Mã đặt lại mật khẩu đã được gửi đến email: {maskedEmail}. Vui lòng kiểm tra hộp thư."
+                ));
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi gửi email quên mật khẩu", new[] { ex.Message }, 500));
             }
+
+        }
+        /// </summary>
+        private string MaskEmail(string email)
+        {
+            var atIndex = email.IndexOf('@');
+            if (atIndex <= 2) return "***" + email.Substring(atIndex);
+
+            return email.Substring(0, 3) + new string('*', atIndex - 3) + email.Substring(atIndex);
         }
 
         // =================== RESET PASSWORD ===================
