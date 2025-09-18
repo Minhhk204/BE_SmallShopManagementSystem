@@ -160,34 +160,36 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ===== SEARCH =====
         [HttpGet("search")]
-        [Authorize(Policy = PermissionConstants.Roles.View)]
-        public async Task<IActionResult> Search([FromQuery] string keyword)
+        public async Task<IActionResult> Search(
+        [FromQuery] string keyword,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 7)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(keyword))
                     return BadRequest(ApiResponse<object>.ErrorResponse("Từ khóa là bắt buộc", null, 400));
 
-                var roles = await _unitOfWork.RoleRepository
-                    .FindWithUsersAsync(r => r.Name.ToLower().Contains(keyword.ToLower()));
+                var query = _unitOfWork.RoleRepository.Query()
+                    .Where(r => r.Name.ToLower().Contains(keyword.ToLower()));
 
-                if (!roles.Any())
-                    return NotFound(ApiResponse<object>.ErrorResponse("Không tìm thấy vai trò nào phù hợp", null, 404));
+                var result = await query
+                    .Select(r => new RoleDto
+                    {
+                        Id = r.Id,
+                        Name = r.Name,
+                        UserCount = r.UserRoles.Count
+                    })
+                    .ToPagedResultAsync(pageNumber, pageSize);
 
-                var result = roles.Select(r => new RoleDto
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                    UserCount = r.UserRoles.Count
-                });
-
-                return Ok(ApiResponse<IEnumerable<RoleDto>>.SuccessResponse(result, "Tìm kiếm vai trò thành công"));
+                return Ok(ApiResponse<object>.SuccessResponse(result, "Tìm kiếm vai trò thành công"));
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi khi tìm kiếm vai trò", new[] { ex.Message }, 500));
             }
         }
+
 
         // ===== CREATE =====
         [HttpPost]
