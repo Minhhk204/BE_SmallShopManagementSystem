@@ -367,27 +367,25 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
+                // Lấy user kèm roles
                 var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
-                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
+                if (user == null)
+                    return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
 
+                // Không được phép thay đổi Id, Username, Email
                 if (dto.Id != id || dto.Username != user.Username || dto.Email != user.Email)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Không được phép thay đổi Id, Username hoặc Email", null, 400));
+                    return BadRequest(ApiResponse<string>.ErrorResponse(
+                        "Không được phép thay đổi Id, Username hoặc Email", null, 400));
 
+                // Cập nhật các trường cho phép
                 user.FullName = dto.FullName;
                 user.PhoneNumber = dto.PhoneNumber;
                 user.IsActive = dto.IsActive;
 
+                // Xóa roles cũ
                 user.UserRoles.Clear();
 
-                //if (!string.IsNullOrWhiteSpace(dto.RoleName))
-                //{
-                //    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                //    if (role == null)
-                //        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
-
-                //    user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
-                //}
-                // Gán lại roles mới
+                // Gán roles mới nếu có
                 if (dto.RoleName != null && dto.RoleName.Any())
                 {
                     foreach (var roleName in dto.RoleName)
@@ -400,9 +398,11 @@ namespace BE__Small_Shop_Management_System.Controllers
                     }
                 }
 
+                // Cập nhật user
                 _unitOfWork.UserRepository.Update(user);
                 await _unitOfWork.CompleteAsync();
 
+                // Trả về kết quả
                 return Ok(ApiResponse<object>.SuccessResponse(
                     new
                     {
@@ -412,9 +412,6 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.FullName,
                         user.PhoneNumber,
                         user.IsActive,
-                        //RoleName = user.UserRoles.Any()
-                        //    ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
-                        //    : null
                         RoleName = user.UserRoles.Select(ur => ur.Role.Name).ToList()
                     },
                     "Người dùng đã cập nhật thành công"
@@ -422,9 +419,12 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi cập nhật người dùng", new[] { ex.Message }, 500));
+                // Log chi tiết để debug
+                return StatusCode(500, ApiResponse<string>.ErrorResponse(
+                    "Lỗi khi cập nhật người dùng", new[] { ex.ToString() }, 500));
             }
         }
+
 
         // ================== SET PASSWORD ==================
         [HttpPut("{id}/set-password")]
