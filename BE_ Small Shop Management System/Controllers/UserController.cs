@@ -21,12 +21,14 @@ namespace BE__Small_Shop_Management_System.Controllers
         private readonly UserPermissionService _service;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly EmailService _emailService;
 
-        public UserController(UserPermissionService service, IUnitOfWork unitOfWork, IMapper mapper)
+        public UserController(UserPermissionService service, IUnitOfWork unitOfWork, IMapper mapper, EmailService emailService)
         {
             _service = service;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _emailService = emailService;
         }
 
         // ================== GET PERMISSIONS ==================
@@ -315,7 +317,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                     PhoneNumber = dto.PhoneNumber,
                     Address = dto.Address,
                     PasswordHash = passwordHash,
-                    IsActive = dto.IsActive
+                    IsActive = dto.IsActive,
+                    IsEmailConfirmed = true
                 };
 
                 await _unitOfWork.UserRepository.AddAsync(user);
@@ -368,29 +371,37 @@ namespace BE__Small_Shop_Management_System.Controllers
             try
             {
                 var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
-                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
-
-                if (dto.Id != id || dto.Username != user.Username || dto.Email != user.Email)
+                if (user == null)
+                    return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
+                // 🔹 Check trùng Phone
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                {
+                    var existsPhone = await _unitOfWork.UserRepository.ExistsAsync(u => u.PhoneNumber == dto.PhoneNumber);
+                    if (existsPhone)
+                        return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại đã tồn tại", null, 400));
+                }
+                // 🔹 Validate định dạng Phone
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && !ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)", null, 400));
+                if (dto.Id != id
+                    || !string.Equals(dto.Username, user.Username, StringComparison.OrdinalIgnoreCase)
+                    || !string.Equals(dto.Email, user.Email, StringComparison.OrdinalIgnoreCase))
+                {
                     return BadRequest(ApiResponse<string>.ErrorResponse("Không được phép thay đổi Id, Username hoặc Email", null, 400));
+                }
 
+                // Cập nhật thông tin cơ bản
                 user.FullName = dto.FullName;
                 user.PhoneNumber = dto.PhoneNumber;
+                user.Address = dto.Address;
                 user.IsActive = dto.IsActive;
 
+                // Reset lại roles
                 user.UserRoles.Clear();
 
-                //if (!string.IsNullOrWhiteSpace(dto.RoleName))
-                //{
-                //    var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == dto.RoleName);
-                //    if (role == null)
-                //        return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{dto.RoleName}' không tồn tại", null, 400));
-
-                //    user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
-                //}
-                // Gán lại roles mới
                 if (dto.RoleName != null && dto.RoleName.Any())
                 {
-                    foreach (var roleName in dto.RoleName)
+                    foreach (var roleName in dto.RoleName.Distinct())
                     {
                         var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == roleName);
                         if (role == null)
@@ -411,10 +422,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.Email,
                         user.FullName,
                         user.PhoneNumber,
+                        user.Address,
                         user.IsActive,
-                        //RoleName = user.UserRoles.Any()
-                        //    ? string.Join(", ", user.UserRoles.Select(r => r.Role.Name))
-                        //    : null
                         RoleName = user.UserRoles.Select(ur => ur.Role.Name).ToList()
                     },
                     "Người dùng đã cập nhật thành công"
@@ -425,6 +434,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi cập nhật người dùng", new[] { ex.Message }, 500));
             }
         }
+
 
         // ================== SET PASSWORD ==================
         [HttpPut("{id}/set-password")]
@@ -517,6 +527,74 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi xóa vai trò", new[] { ex.Message }, 500));
             }
         }
+
+        // =================== FORGOT PASSWORD ===================
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            try
+            {
+                var users = await _unitOfWork.UserRepository.FindAsync(u => u.Email == dto.Email);
+                var user = users.FirstOrDefault();
+
+                if (user == null)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không tồn tại trong hệ thống", null, 400));
+
+                // Sinh mã OTP reset password
+                var resetCode = new Random().Next(100000, 999999).ToString();
+                user.VerificationCode = resetCode;
+                user.VerificationExpiry = DateTime.UtcNow.AddMinutes(10);
+
+                _unitOfWork.UserRepository.Update(user);
+                await _unitOfWork.CompleteAsync();
+
+                // Link reset password (cho frontend dùng)
+                var resetLink = $"{Request.Scheme}://{Request.Host}/reset-password?email={user.Email}&code={resetCode}";
+
+                // Gửi mail
+                await _emailService.SendVerificationEmailAsync(user.Email, resetCode, resetLink);
+
+                return Ok(ApiResponse<string>.SuccessResponse(null, "Vui lòng kiểm tra email để đặt lại mật khẩu", 200));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi gửi email quên mật khẩu", new[] { ex.Message }, 500));
+            }
+        }
+
+        // =================== RESET PASSWORD ===================
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            try
+            {
+                var users = await _unitOfWork.UserRepository.FindAsync(u => u.Email == dto.Email);
+                var user = users.FirstOrDefault();
+
+                if (user == null)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không tồn tại", null, 400));
+
+                if (user.VerificationCode != dto.Code || user.VerificationExpiry < DateTime.UtcNow)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Mã xác thực không đúng hoặc đã hết hạn", null, 400));
+
+                // Đặt lại mật khẩu
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+                user.VerificationCode = null;
+                user.VerificationExpiry = null;
+
+                _unitOfWork.UserRepository.Update(user);
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(ApiResponse<string>.SuccessResponse(null, "Đặt lại mật khẩu thành công", 200));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi đặt lại mật khẩu", new[] { ex.Message }, 500));
+            }
+        }
+
 
         // ================== HELPER ==================
         private UserDto MapToDto(User user)
