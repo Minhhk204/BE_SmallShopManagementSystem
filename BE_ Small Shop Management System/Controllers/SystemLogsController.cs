@@ -31,8 +31,10 @@ namespace BE__Small_Shop_Management_System.Controllers
             var result = logs.Select(l => new SystemLogDto
             {
                 Id = l.Id,
-                UserId = l.UserId,
                 UserName = l.User?.Username,
+                Method = l.Method,
+                Path = l.Path,
+                StatusCode = l.StatusCode,
                 Action = l.Action,
                 CreatedAt = l.CreatedAt,
                 Duration = l.Duration,
@@ -54,8 +56,10 @@ namespace BE__Small_Shop_Management_System.Controllers
             var dto = new SystemLogDto
             {
                 Id = log.Id,
-                UserId = log.UserId,
                 UserName = log.User?.Username,
+                Method = log.Method,
+                Path = log.Path,
+                StatusCode = log.StatusCode,
                 Action = log.Action,
                 CreatedAt = log.CreatedAt,
                 Duration = log.Duration,
@@ -64,55 +68,55 @@ namespace BE__Small_Shop_Management_System.Controllers
             };
 
             return Ok(dto);
-
         }
 
         [HttpGet("paged")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPaged([FromQuery] SystemLogFilterRequest filter,
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             var query = _unitOfWork.SystemLogRepository.Query();
 
-            // ✅ Lọc theo UserName
+            // ✅ Lọc UserName
             if (!string.IsNullOrEmpty(filter.UserName))
                 query = query.Where(l => l.User != null && l.User.Username.Contains(filter.UserName));
 
-            // ✅ Lọc theo Action
+            // ✅ Lọc Action
             if (!string.IsNullOrEmpty(filter.Action))
                 query = query.Where(l => l.Action.Contains(filter.Action));
 
-            // ✅ Lọc theo khoảng thời gian
+            // ✅ Lọc khoảng thời gian
             if (filter.FromDate.HasValue)
                 query = query.Where(l => l.CreatedAt >= filter.FromDate.Value);
 
             if (filter.ToDate.HasValue)
                 query = query.Where(l => l.CreatedAt <= filter.ToDate.Value);
-            // ✅ Lọc theo khoảng duration
+
+            // ✅ Lọc Duration
             if (filter.MinDuration.HasValue)
                 query = query.Where(l => l.Duration >= filter.MinDuration.Value);
 
             if (filter.MaxDuration.HasValue)
                 query = query.Where(l => l.Duration <= filter.MaxDuration.Value);
 
-
-            // ✅ Tổng số log sau khi lọc
             var totalCount = await query.CountAsync();
 
-            // ✅ Phân trang
             var logs = await query
-                .OrderByDescending(l => l.CreatedAt) // mới nhất trước
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
+                .OrderByDescending(l => l.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             var result = new PagedResult<SystemLogDto>
             {
                 Items = logs.Select(l => new SystemLogDto
                 {
-                    UserId = l.UserId,
+                    Id = l.Id,
                     UserName = l.User?.Username,
+                    Method = l.Method,
+                    Path = l.Path,
+                    StatusCode = l.StatusCode,
                     Action = l.Action,
                     CreatedAt = l.CreatedAt,
                     Duration = l.Duration,
@@ -120,13 +124,12 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Data = l.Data
                 }),
                 TotalCount = totalCount,
-                PageNumber = filter.PageNumber,
-                PageSize = filter.PageSize
+                PageNumber = pageNumber,
+                PageSize = pageSize
             };
 
             return Ok(result);
         }
-
         [HttpDelete("xóa 1 hoặc nhiều theo id")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteRange([FromBody] List<int> ids)
@@ -170,6 +173,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(new { message = $"Đã xóa {oldLogs.Count()} log cũ hơn {days} ngày" });
         }
+
 
     }
 }

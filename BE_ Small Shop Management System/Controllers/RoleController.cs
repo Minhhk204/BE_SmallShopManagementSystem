@@ -8,6 +8,7 @@ using BE__Small_Shop_Management_System.Services;
 using BE__Small_Shop_Management_System.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static BE__Small_Shop_Management_System.Constants.PermissionConstants;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -160,6 +161,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ===== SEARCH =====
         [HttpGet("search")]
+        [Authorize(Policy = PermissionConstants.Roles.View)]
         public async Task<IActionResult> Search(
         [FromQuery] string keyword,
         [FromQuery] int pageNumber = 1,
@@ -172,7 +174,8 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var query = _unitOfWork.RoleRepository.Query()
                     .Where(r => r.Name.ToLower().Contains(keyword.ToLower()));
-
+                if (!query.Any())
+                    return NotFound(ApiResponse<object>.ErrorResponse("Không tìm thấy vai trò nào phù hợp", null, 404));
                 var result = await query
                     .Select(r => new RoleDto
                     {

@@ -11,7 +11,7 @@ namespace BE__Small_Shop_Management_System.DTOs
         public string? PhoneNumber { get; set; }
         public string? Password { get; set; }
         public string? Address { get; set; }
-        [JsonIgnore]
+   
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
