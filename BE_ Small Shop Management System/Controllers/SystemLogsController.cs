@@ -86,6 +86,13 @@ namespace BE__Small_Shop_Management_System.Controllers
             if (!string.IsNullOrEmpty(filter.Action))
                 query = query.Where(l => l.Action.Contains(filter.Action));
 
+            // ✅ Lọc Method
+            if (!string.IsNullOrEmpty(filter.Method))
+                query = query.Where(l => l.Method == filter.Method);
+
+            // ✅ Lọc StatusCode
+            if (filter.StatusCode.HasValue)
+                query = query.Where(l => l.StatusCode == filter.StatusCode.Value);
             // ✅ Lọc khoảng thời gian
             if (filter.FromDate.HasValue)
                 query = query.Where(l => l.CreatedAt >= filter.FromDate.Value);
