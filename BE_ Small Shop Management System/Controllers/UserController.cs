@@ -11,6 +11,7 @@ using BE__Small_Shop_Management_System.Extensions;
 using AutoMapper;
 using BE__Small_Shop_Management_System.Helper;
 using static BE__Small_Shop_Management_System.Constants.PermissionConstants;
+using System;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -349,6 +350,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     FullName = dto.FullName,
                     PhoneNumber = dto.PhoneNumber,
                     Address = dto.Address,
+                    CreatedAt = dto.CreatedAt,
                     PasswordHash = passwordHash,
                     IsActive = dto.IsActive,
                     IsEmailConfirmed = true
@@ -384,6 +386,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.FullName,
                         user.PhoneNumber,
                         user.IsActive,
+                        user.CreatedAt,
                         Roles = dto.RoleName
                     },
                     "Người dùng đã được tạo thành công"
@@ -403,60 +406,48 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                // Lấy user kèm roles
                 var user = await _unitOfWork.UserRepository.GetByIdWithRolesAsync(id);
                 if (user == null)
                     return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
 
-                // 🔹 Check trùng Phone// 🔹 Check trùng Phone
+                // Kiểm tra số điện thoại (nếu có nhập)
                 if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
                 {
                     var existsPhone = await _unitOfWork.UserRepository.ExistsAsync(
                         u => u.PhoneNumber == dto.PhoneNumber && u.Id != id
                     );
-
                     if (existsPhone)
                         return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại đã tồn tại", null, 400));
+
+                    if (!ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
+                        return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)", null, 400));
                 }
 
-                // 🔹 Validate định dạng Phone
-                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && !ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)", null, 400));
-                if (dto.Id != id
-                    || !string.Equals(dto.Username, user.Username, StringComparison.OrdinalIgnoreCase)
-                    || !string.Equals(dto.Email, user.Email, StringComparison.OrdinalIgnoreCase))
-                {
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Không được phép thay đổi Id, Username hoặc Email", null, 400));
-                }
-
-                // Cập nhật thông tin cơ bản
-
+                // ✅ Chỉ update các field cho phép
                 user.FullName = dto.FullName;
                 user.PhoneNumber = dto.PhoneNumber;
                 user.Address = dto.Address;
                 user.IsActive = dto.IsActive;
 
-
-                // Reset lại roles
-                user.UserRoles.Clear();
+                // Cập nhật roles
+                var oldRoles = user.UserRoles.ToList();
+                foreach (var ur in oldRoles)
+                {
+                    _unitOfWork.UserRoleRepository.Delete(ur);
+                }
 
                 if (dto.RoleName != null && dto.RoleName.Any())
                 {
-                    foreach (var roleName in dto.RoleName.Distinct())
+                    var roles = await _unitOfWork.RoleRepository.FindAsync(r => dto.RoleName.Contains(r.Name));
+                    foreach (var role in roles)
                     {
-                        var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == roleName);
-                        if (role == null)
-                            return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{roleName}' không tồn tại", null, 400));
-
                         user.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
                     }
                 }
 
-                // Cập nhật user
                 _unitOfWork.UserRepository.Update(user);
                 await _unitOfWork.CompleteAsync();
 
-                // Trả về kết quả
                 return Ok(ApiResponse<object>.SuccessResponse(
                     new
                     {
@@ -474,11 +465,13 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                // Log chi tiết để debug
                 return StatusCode(500, ApiResponse<string>.ErrorResponse(
                     "Lỗi khi cập nhật người dùng", new[] { ex.ToString() }, 500));
             }
         }
+
+
+
 
 
         // ================== SET PASSWORD ==================

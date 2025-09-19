@@ -4,6 +4,7 @@ using System.Security.Claims;
 
 namespace BE__Small_Shop_Management_System.Middleware
 {
+
     public class ActiveUserMiddleware
     {
         private readonly RequestDelegate _next;
@@ -15,17 +16,19 @@ namespace BE__Small_Shop_Management_System.Middleware
 
         public async Task InvokeAsync(HttpContext context, AppDbContext db)
         {
-            if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
+            if (context.User.Identity is { IsAuthenticated: true })
             {
-                var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out var id))
+                var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var userId))
                 {
-                    var user = await db.Users.FindAsync(id);
+                    var user = await db.Users.FindAsync(userId);
 
                     if (user == null)
                     {
-                        // User không tồn tại → 401
-                        await LogSystem(db, id, null, context, "Unauthorized - User not found");
+                        // ❌ User không tồn tại → 401
+                        await LogSystem(db, userId, null, context, "Unauthorized - User not found", StatusCodes.Status401Unauthorized);
+
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         await context.Response.WriteAsync("Người dùng không tồn tại.");
                         return;
@@ -33,8 +36,9 @@ namespace BE__Small_Shop_Management_System.Middleware
 
                     if (!user.IsActive)
                     {
-                        // User bị khóa → 403
-                        await LogSystem(db, id, user.Username, context, "Forbidden - User is deactivated");
+                        // ❌ User bị khóa → 403
+                        await LogSystem(db, user.Id, user.Username, context, "Forbidden - User is deactivated", StatusCodes.Status403Forbidden);
+
                         context.Response.StatusCode = StatusCodes.Status403Forbidden;
                         await context.Response.WriteAsync("Tài khoản đã bị khóa, vui lòng liên hệ Admin.");
                         return;
@@ -45,20 +49,28 @@ namespace BE__Small_Shop_Management_System.Middleware
             await _next(context);
         }
 
-        private async Task LogSystem(AppDbContext db, int? userId, string? userName, HttpContext context, string reason)
+
+        private async Task LogSystem(AppDbContext db, int? userId, string? userName, HttpContext context, string reason, int statusCode)
         {
             var log = new SystemLog
             {
                 UserId = userId,
                 UserName = userName,
-                Action = $"{context.Request.Method} {context.Request.Path} ({context.Response?.StatusCode})",
+
+                Method = context.Request.Method,
+                Path = context.Request.Path,
+                StatusCode = statusCode,
+                Action = $"{context.Request.Method} {context.Request.Path} ({statusCode})", // vẫn giữ chuỗi gọn để search nhanh
+
                 Data = $"IP: {context.Connection.RemoteIpAddress}\nReason: {reason}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ApplicationName = "Small Shop System"
             };
 
             db.SystemLogs.Add(log);
             await db.SaveChangesAsync();
         }
+
     }
 
 }

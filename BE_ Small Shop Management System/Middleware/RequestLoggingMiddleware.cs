@@ -26,6 +26,7 @@ namespace BE__Small_Shop_Management_System.Middleware
             var path = context.Request.Path + context.Request.QueryString;
             var (userId, userName) = GetUserInfoFromContext(context);
 
+            // Đọc body request
             context.Request.EnableBuffering();
             string body = "";
             using (var reader = new StreamReader(context.Request.Body, Encoding.UTF8, true, 1024, true))
@@ -39,17 +40,20 @@ namespace BE__Small_Shop_Management_System.Middleware
             await _next(context);
 
             stopwatch.Stop();
-            var statusCode = context.Response.StatusCode;
 
             var log = new SystemLog
             {
                 UserId = userId,
                 UserName = userName,
-                User = userId.HasValue ? await db.Users.FindAsync(userId) : null,
-                Action = $"{method} {path} ({statusCode})",
+
+                Method = method,
+                Path = path,
+                StatusCode = context.Response.StatusCode,
+                Action = $"{method} {path} ({context.Response.StatusCode})", // vẫn giữ để search nhanh
+
                 Data = $"IP: {ip}\nHeaders:\n{headers}\nBody: {body}",
                 CreatedAt = DateTime.UtcNow,
-                Duration = (int)stopwatch.ElapsedMilliseconds, // thời gian thực thi
+                Duration = stopwatch.ElapsedMilliseconds,
                 ApplicationName = "Small Shop System"
             };
 
@@ -57,10 +61,8 @@ namespace BE__Small_Shop_Management_System.Middleware
             await db.SaveChangesAsync();
         }
 
-
         private (int? userId, string? userName) GetUserInfoFromContext(HttpContext context)
         {
-            // Nếu đã authenticate => lấy từ Claims
             if (context.User.Identity is { IsAuthenticated: true })
             {
                 var idClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -73,12 +75,10 @@ namespace BE__Small_Shop_Management_System.Middleware
                 return (userId, nameClaim?.Value);
             }
 
-            // Nếu chưa có => thử lấy trực tiếp từ JWT
             var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
             if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
             {
                 var token = authHeader.Substring("Bearer ".Length).Trim();
-
                 var handler = new JwtSecurityTokenHandler();
                 var jwtToken = handler.ReadJwtToken(token);
 
@@ -98,6 +98,7 @@ namespace BE__Small_Shop_Management_System.Middleware
             return (null, null);
         }
     }
+
 
 
 }
