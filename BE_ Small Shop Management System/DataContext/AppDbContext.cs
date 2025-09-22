@@ -14,6 +14,7 @@ namespace BE__Small_Shop_Management_System.DataContext
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
+        public DbSet<PasswordPolicy> PasswordPolicies { get; set; }
 
         // ==== Bảng RefreshToken ====
         public DbSet<RefreshToken> RefreshTokens { get; set; }

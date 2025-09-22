@@ -1,44 +1,82 @@
-﻿using BE__Small_Shop_Management_System.Models;
+﻿using BE__Small_Shop_Management_System.DataContext;
+using BE__Small_Shop_Management_System.DTOs;
+using BE__Small_Shop_Management_System.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
+
 
 namespace BE__Small_Shop_Management_System.Services
 {
     public class PasswordPolicyService
     {
-        private PasswordPolicy _policy;
+        private readonly AppDbContext _context;
 
-        public PasswordPolicyService()
+        public PasswordPolicyService(AppDbContext context)
         {
-            _policy = new PasswordPolicy(); // mặc định
+            _context = context;
         }
 
-        public PasswordPolicy GetPolicy()
+        // ✅ Lấy policy hiện tại trong DB (chỉ 1 bản ghi)
+        public async Task<PasswordPolicy> GetPolicyAsync()
         {
-            return _policy;
+            var policy = await _context.PasswordPolicies.FirstOrDefaultAsync();
+            if (policy == null)
+            {
+                policy = new PasswordPolicy(); // default
+                _context.PasswordPolicies.Add(policy);
+                await _context.SaveChangesAsync();
+            }
+            return policy;
         }
 
-        public void UpdatePolicy(PasswordPolicy newPolicy)
+        // ✅ Cập nhật policy
+        public async Task<PasswordPolicy> UpdatePolicyAsync(PasswordPolicyDto dto)
         {
-            _policy = newPolicy;
+            var policy = await _context.PasswordPolicies.FirstOrDefaultAsync();
+
+            if (policy == null)
+            {
+                policy = new PasswordPolicy();
+                _context.PasswordPolicies.Add(policy);
+            }
+
+            policy.RequiredLength = dto.RequiredLength;
+            policy.RequireUppercase = dto.RequireUppercase;
+            policy.RequireLowercase = dto.RequireLowercase;
+            policy.RequireDigit = dto.RequireDigit;
+            policy.RequireNonAlphanumeric = dto.RequireNonAlphanumeric;
+            policy.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return policy;
         }
 
+        // ✅ Validate mật khẩu theo policy
         public bool ValidatePassword(string password, out List<string> errors)
         {
             errors = new List<string>();
+            var policy = _context.PasswordPolicies.FirstOrDefault() ?? new PasswordPolicy();
 
-            if (password.Length < _policy.RequiredLength)
-                errors.Add($"Mật khẩu phải có ít nhất {_policy.RequiredLength} ký tự.");
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                errors.Add("Mật khẩu không được để trống");
+                return false;
+            }
 
-            if (_policy.RequireUppercase && !password.Any(char.IsUpper))
-                errors.Add("Mật khẩu phải chứa ít nhất một chữ in hoa.");
+            if (password.Length < policy.RequiredLength)
+                errors.Add($"Mật khẩu phải có ít nhất {policy.RequiredLength} ký tự");
 
-            if (_policy.RequireLowercase && !password.Any(char.IsLower))
-                errors.Add("Mật khẩu phải chứa ít nhất một chữ thường.");
+            if (policy.RequireUppercase && !password.Any(char.IsUpper))
+                errors.Add("Mật khẩu phải có ít nhất 1 chữ hoa");
 
-            if (_policy.RequireDigit && !password.Any(char.IsDigit))
-                errors.Add("Mật khẩu phải chứa ít nhất một chữ số.");
+            if (policy.RequireLowercase && !password.Any(char.IsLower))
+                errors.Add("Mật khẩu phải có ít nhất 1 chữ thường");
 
-            if (_policy.RequireNonAlphanumeric && password.All(char.IsLetterOrDigit))
-                errors.Add("Mật khẩu phải chứa ít nhất một ký tự đặc biệt.");
+            if (policy.RequireDigit && !password.Any(char.IsDigit))
+                errors.Add("Mật khẩu phải có ít nhất 1 chữ số");
+
+            if (policy.RequireNonAlphanumeric && !Regex.IsMatch(password, @"[^a-zA-Z0-9]"))
+                errors.Add("Mật khẩu phải có ít nhất 1 ký tự đặc biệt");
 
             return !errors.Any();
         }
