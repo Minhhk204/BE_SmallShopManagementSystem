@@ -101,6 +101,8 @@ namespace BE__Small_Shop_Management_System
             builder.Services.AddScoped<UserPermissionService>();
             builder.Services.AddScoped<JwtService>();
             builder.Services.AddScoped<EmailService>();
+            builder.Services.AddSingleton<PasswordPolicyService>();
+
 
             builder.Services.AddAuthorization(options =>
             {

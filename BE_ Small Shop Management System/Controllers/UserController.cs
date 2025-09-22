@@ -23,13 +23,15 @@ namespace BE__Small_Shop_Management_System.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly EmailService _emailService;
+        private readonly PasswordPolicyService _passwordPolicyService;
 
-        public UserController(UserPermissionService service, IUnitOfWork unitOfWork, IMapper mapper, EmailService emailService)
+        public UserController(UserPermissionService service, IUnitOfWork unitOfWork, IMapper mapper, EmailService emailService, PasswordPolicyService passwordPolicyService)
         {
             _service = service;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _emailService = emailService;
+            _passwordPolicyService = passwordPolicyService;
         }
 
         // ================== GET PERMISSIONS ==================
@@ -302,7 +304,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
 
-        // ================== CREATE ==================
+        // ================== CREATE USER BY ADMIN ==================
         [HttpPost]
         [Authorize(Policy = PermissionConstants.Users.Create)]
         public async Task<IActionResult> Create([FromBody] UserDto dto)
@@ -310,38 +312,40 @@ namespace BE__Small_Shop_Management_System.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Email))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng và Email là bắt buộc", null, 400));
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng và Email là bắt buộc"));
 
                 // 🔹 Check trùng Username
-                var existsUsername = await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username);
-                if (existsUsername)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng đã tồn tại", null, 400));
+                if (await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng đã tồn tại"));
 
                 // 🔹 Check trùng Email
-                var existsEmail = await _unitOfWork.UserRepository.ExistsAsync(u => u.Email == dto.Email);
-                if (existsEmail)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Email đã tồn tại", null, 400));
+                if (await _unitOfWork.UserRepository.ExistsAsync(u => u.Email == dto.Email))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Email đã tồn tại"));
 
                 // 🔹 Check trùng Phone
-                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
-                {
-                    var existsPhone = await _unitOfWork.UserRepository.ExistsAsync(u => u.PhoneNumber == dto.PhoneNumber);
-                    if (existsPhone)
-                        return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại đã tồn tại", null, 400));
-                }
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) &&
+                    await _unitOfWork.UserRepository.ExistsAsync(u => u.PhoneNumber == dto.PhoneNumber))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại đã tồn tại"));
 
                 // 🔹 Validate định dạng Email
                 if (!ValidationHelper.IsValidEmail(dto.Email))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không đúng định dạng", null, 400));
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không đúng định dạng"));
 
                 // 🔹 Validate định dạng Phone
-                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && !ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)", null, 400));
+                if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) &&
+                    !ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)"));
 
-                // 🔹 Hash password
-                string passwordHash = string.IsNullOrWhiteSpace(dto.Password)
-                    ? string.Empty
-                    : BCrypt.Net.BCrypt.HashPassword(dto.Password);
+                // 🔹 Hash password (nếu có)
+                string passwordHash = string.Empty;
+                if (!string.IsNullOrWhiteSpace(dto.Password))
+                {
+                    // ✅ Validate theo PasswordPolicy
+                    if (!_passwordPolicyService.ValidatePassword(dto.Password, out var errors))
+                        return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
+
+                    passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+                }
 
                 var user = new User
                 {
@@ -350,10 +354,10 @@ namespace BE__Small_Shop_Management_System.Controllers
                     FullName = dto.FullName,
                     PhoneNumber = dto.PhoneNumber,
                     Address = dto.Address,
-                    CreatedAt = dto.CreatedAt,
+                    CreatedAt = dto.CreatedAt == default ? DateTime.UtcNow : dto.CreatedAt,
                     PasswordHash = passwordHash,
-                    IsActive = dto.IsActive,
-                    IsEmailConfirmed = true
+                    IsActive = dto.IsActive,       // Admin chọn có active hay không
+                    IsEmailConfirmed = true        // ✅ Mặc định đã xác thực email
                 };
 
                 await _unitOfWork.UserRepository.AddAsync(user);
@@ -366,7 +370,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     {
                         var role = await _unitOfWork.RoleRepository.FindSingleAsync(r => r.Name == roleName);
                         if (role == null)
-                            return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{roleName}' không tồn tại", null, 400));
+                            return BadRequest(ApiResponse<string>.ErrorResponse($"Role '{roleName}' không tồn tại"));
 
                         await _unitOfWork.UserRoleRepository.AddAsync(new UserRole
                         {
@@ -389,7 +393,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                         user.CreatedAt,
                         Roles = dto.RoleName
                     },
-                    "Người dùng đã được tạo thành công"
+                    "Người dùng đã được tạo thành công (Admin tạo, không cần xác thực email)"
                 ));
             }
             catch (Exception ex)
@@ -397,6 +401,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi tạo người dùng", new[] { ex.Message }, 500));
             }
         }
+
 
 
         // ================== UPDATE ==================
@@ -474,7 +479,6 @@ namespace BE__Small_Shop_Management_System.Controllers
 
 
 
-        // ================== SET PASSWORD ==================
         [HttpPut("{id}/set-password")]
         [Authorize(Policy = PermissionConstants.Users.Update)]
         public async Task<IActionResult> SetPassword(int id, [FromBody] SetPasswordRequest request)
@@ -482,30 +486,33 @@ namespace BE__Small_Shop_Management_System.Controllers
             try
             {
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-                if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
+                if (user == null)
+                    return NotFound(ApiResponse<string>.ErrorResponse("Người dùng không tồn tại", null, 404));
 
                 if (!string.IsNullOrWhiteSpace(user.PasswordHash) && !string.IsNullOrWhiteSpace(request.CurrentPassword))
                 {
                     bool isMatch = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
                     if (!isMatch)
-                        return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu hiện tại không đúng", null, 400));
+                        return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu hiện tại không đúng"));
                 }
+
+                // ✅ Validate mật khẩu theo policy
+                if (!_passwordPolicyService.ValidatePassword(request.NewPassword, out var errors))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
 
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
 
                 _unitOfWork.UserRepository.Update(user);
                 await _unitOfWork.CompleteAsync();
 
-                return Ok(ApiResponse<object>.SuccessResponse(
-                    new { user.Id, user.Username },
-                    "Mật khẩu đã được thay đổi thành công"
-                ));
+                return Ok(ApiResponse<object>.SuccessResponse(new { user.Id, user.Username }, "Mật khẩu đã được thay đổi thành công"));
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi đặt mật khẩu", new[] { ex.Message }, 500));
             }
         }
+
 
         // ================== DELETE ==================
         [HttpPut("{id}/DeleteUser")]
@@ -618,21 +625,22 @@ namespace BE__Small_Shop_Management_System.Controllers
             return email.Substring(0, 3) + new string('*', atIndex - 3) + email.Substring(atIndex);
         }
 
-        // =================== RESET PASSWORD ===================
         [HttpPost("reset-password")]
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
         {
             try
             {
-                var users = await _unitOfWork.UserRepository.FindAsync(u => u.Email == dto.Email);
-                var user = users.FirstOrDefault();
-
+                var user = (await _unitOfWork.UserRepository.FindAsync(u => u.Email == dto.Email)).FirstOrDefault();
                 if (user == null)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không tồn tại", null, 400));
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không tồn tại"));
 
                 if (user.VerificationCode != dto.Code || user.VerificationExpiry < DateTime.UtcNow)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Mã xác thực không đúng hoặc đã hết hạn", null, 400));
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Mã xác thực không đúng hoặc đã hết hạn"));
+
+                // ✅ Validate mật khẩu theo policy
+                if (!_passwordPolicyService.ValidatePassword(dto.NewPassword, out var errors))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
 
                 // Đặt lại mật khẩu
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
@@ -642,13 +650,15 @@ namespace BE__Small_Shop_Management_System.Controllers
                 _unitOfWork.UserRepository.Update(user);
                 await _unitOfWork.CompleteAsync();
 
-                return Ok(ApiResponse<string>.SuccessResponse(null, "Đặt lại mật khẩu thành công", 200));
+                return Ok(ApiResponse<string>.SuccessResponse(null, "Đặt lại mật khẩu thành công"));
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi đặt lại mật khẩu", new[] { ex.Message }, 500));
             }
         }
+
+        
 
 
         // ================== HELPER ==================
