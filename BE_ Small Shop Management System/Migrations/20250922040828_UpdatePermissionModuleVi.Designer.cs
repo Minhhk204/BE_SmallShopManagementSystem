@@ -4,6 +4,7 @@ using BE__Small_Shop_Management_System.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE__Small_Shop_Management_System.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922040828_UpdatePermissionModuleVi")]
+    partial class UpdatePermissionModuleVi
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,11 +217,9 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-
                             CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2715),
                             Description = "Xem danh sách người dùng",
                             Module = "Người dùng",
-
                             Name = "Users.View"
                         },
                         new
@@ -227,7 +228,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                             CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2765),
                             Description = "Tạo mới người dùng",
                             Module = "Người dùng",
-
                             Name = "Users.Create"
                         },
                         new
@@ -236,7 +236,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                             CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2772),
                             Description = "Cập nhật thông tin người dùng",
                             Module = "Người dùng",
-
                             Name = "Users.Update"
                         },
                         new
@@ -245,7 +244,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                             CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2809),
                             Description = "Xóa người dùng",
                             Module = "Người dùng",
-
                             Name = "Users.Delete"
                         },
                         new
@@ -254,7 +252,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                             CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2818),
                             Description = "Khóa tài khoản người dùng",
                             Module = "Người dùng",
-
                             Name = "Users.Lock"
                         },
                         new
@@ -263,7 +260,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                             CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2826),
                             Description = "Mở khóa tài khoản người dùng",
                             Module = "Người dùng",
-
                             Name = "Users.Unlock"
                         },
                         new
@@ -272,7 +268,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                             CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2837),
                             Description = "Xem danh sách vai trò",
                             Module = "Vai trò",
-
                             Name = "Roles.View"
                         },
                         new
@@ -289,7 +284,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                             CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2851),
                             Description = "Cập nhật vai trò",
                             Module = "Vai trò",
-
                             Name = "Roles.Update"
                         },
                         new
@@ -761,9 +755,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                             IsActive = true,
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-
                             PasswordHash = "$2a$11$IOpZNJ7HjA0tay3XiAJse.aybKBREw9sIyXBN9qycZsHjdiJ30ZuS",
-
                             PhoneNumber = "0123456789",
                             Username = "admin"
                         });
