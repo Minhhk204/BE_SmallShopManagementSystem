@@ -4,6 +4,7 @@ using BE__Small_Shop_Management_System.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE__Small_Shop_Management_System.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922032236_PasswordPolicy")]
+    partial class PasswordPolicy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,202 +217,193 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2715),
-                            Description = "Xem danh sách người dùng",
-                            Module = "Người dùng",
-
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5038),
+                            Description = "Users View",
+                            Module = "Users",
                             Name = "Users.View"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2765),
-                            Description = "Tạo mới người dùng",
-                            Module = "Người dùng",
-
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5086),
+                            Description = "Users Create",
+                            Module = "Users",
                             Name = "Users.Create"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2772),
-                            Description = "Cập nhật thông tin người dùng",
-                            Module = "Người dùng",
-
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5093),
+                            Description = "Users Update",
+                            Module = "Users",
                             Name = "Users.Update"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2809),
-                            Description = "Xóa người dùng",
-                            Module = "Người dùng",
-
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5131),
+                            Description = "Users Delete",
+                            Module = "Users",
                             Name = "Users.Delete"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2818),
-                            Description = "Khóa tài khoản người dùng",
-                            Module = "Người dùng",
-
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5137),
+                            Description = "Users Lock",
+                            Module = "Users",
                             Name = "Users.Lock"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2826),
-                            Description = "Mở khóa tài khoản người dùng",
-                            Module = "Người dùng",
-
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5143),
+                            Description = "Users Unlock",
+                            Module = "Users",
                             Name = "Users.Unlock"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2837),
-                            Description = "Xem danh sách vai trò",
-                            Module = "Vai trò",
-
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5154),
+                            Description = "Roles View",
+                            Module = "Roles",
                             Name = "Roles.View"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2844),
-                            Description = "Tạo mới vai trò",
-                            Module = "Vai trò",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5160),
+                            Description = "Roles Create",
+                            Module = "Roles",
                             Name = "Roles.Create"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2851),
-                            Description = "Cập nhật vai trò",
-                            Module = "Vai trò",
-
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5166),
+                            Description = "Roles Update",
+                            Module = "Roles",
                             Name = "Roles.Update"
                         },
                         new
                         {
                             Id = 10,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2858),
-                            Description = "Xóa vai trò",
-                            Module = "Vai trò",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5173),
+                            Description = "Roles Delete",
+                            Module = "Roles",
                             Name = "Roles.Delete"
                         },
                         new
                         {
                             Id = 11,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2868),
-                            Description = "Xem danh sách quyền",
-                            Module = "Quyền",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5182),
+                            Description = "Permissions View",
+                            Module = "Permissions",
                             Name = "Permissions.View"
                         },
                         new
                         {
                             Id = 12,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2878),
-                            Description = "Xóa quyền",
-                            Module = "Quyền",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5190),
+                            Description = "Permissions Delete",
+                            Module = "Permissions",
                             Name = "Permissions.Delete"
                         },
                         new
                         {
                             Id = 13,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2890),
-                            Description = "Xem danh sách sản phẩm",
-                            Module = "Sản phẩm",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5200),
+                            Description = "Products View",
+                            Module = "Products",
                             Name = "Products.View"
                         },
                         new
                         {
                             Id = 14,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2898),
-                            Description = "Thêm mới sản phẩm",
-                            Module = "Sản phẩm",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5208),
+                            Description = "Products Create",
+                            Module = "Products",
                             Name = "Products.Create"
                         },
                         new
                         {
                             Id = 15,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2906),
-                            Description = "Cập nhật sản phẩm",
-                            Module = "Sản phẩm",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5217),
+                            Description = "Products Update",
+                            Module = "Products",
                             Name = "Products.Update"
                         },
                         new
                         {
                             Id = 16,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2921),
-                            Description = "Xóa sản phẩm",
-                            Module = "Sản phẩm",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5223),
+                            Description = "Products Delete",
+                            Module = "Products",
                             Name = "Products.Delete"
                         },
                         new
                         {
                             Id = 17,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2931),
-                            Description = "Xem danh sách đơn hàng",
-                            Module = "Đơn hàng",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5239),
+                            Description = "Orders View",
+                            Module = "Orders",
                             Name = "Orders.View"
                         },
                         new
                         {
                             Id = 18,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2938),
-                            Description = "Tạo mới đơn hàng",
-                            Module = "Đơn hàng",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5245),
+                            Description = "Orders Create",
+                            Module = "Orders",
                             Name = "Orders.Create"
                         },
                         new
                         {
                             Id = 19,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2943),
-                            Description = "Cập nhật đơn hàng",
-                            Module = "Đơn hàng",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5250),
+                            Description = "Orders Update",
+                            Module = "Orders",
                             Name = "Orders.Update"
                         },
                         new
                         {
                             Id = 20,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2949),
-                            Description = "Xóa đơn hàng",
-                            Module = "Đơn hàng",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5255),
+                            Description = "Orders Delete",
+                            Module = "Orders",
                             Name = "Orders.Delete"
                         },
                         new
                         {
                             Id = 21,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2954),
-                            Description = "Xử lý đơn hàng",
-                            Module = "Đơn hàng",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5261),
+                            Description = "Orders Process",
+                            Module = "Orders",
                             Name = "Orders.Process"
                         },
                         new
                         {
                             Id = 22,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(2967),
-                            Description = "Xem tồn kho",
-                            Module = "Kho",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5270),
+                            Description = "Inventory View",
+                            Module = "Inventory",
                             Name = "Inventory.View"
                         },
                         new
                         {
                             Id = 23,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(3018),
-                            Description = "Nhập kho",
-                            Module = "Kho",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5275),
+                            Description = "Inventory Import",
+                            Module = "Inventory",
                             Name = "Inventory.Import"
                         },
                         new
                         {
                             Id = 24,
-                            CreatedAt = new DateTime(2025, 9, 22, 4, 8, 28, 237, DateTimeKind.Utc).AddTicks(3031),
-                            Description = "Xem báo cáo tổng quan",
-                            Module = "Báo cáo",
+                            CreatedAt = new DateTime(2025, 9, 22, 3, 22, 34, 526, DateTimeKind.Utc).AddTicks(5281),
+                            Description = "Reports ViewDashboard",
+                            Module = "Reports",
                             Name = "Reports.ViewDashboard"
                         });
                 });
@@ -755,15 +749,13 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 9, 22, 11, 8, 28, 237, DateTimeKind.Local).AddTicks(3350),
+                            CreatedAt = new DateTime(2025, 9, 22, 10, 22, 34, 526, DateTimeKind.Local).AddTicks(5609),
                             Email = "admin@system.com",
                             FullName = "Nguyen Van Minh",
                             IsActive = true,
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-
-                            PasswordHash = "$2a$11$IOpZNJ7HjA0tay3XiAJse.aybKBREw9sIyXBN9qycZsHjdiJ30ZuS",
-
+                            PasswordHash = "$2a$11$EKDLE9OhigHxpvTxQTDP0ew5tUs2GG9SI/q8zBiMdFg3ClD3g6V1e",
                             PhoneNumber = "0123456789",
                             Username = "admin"
                         });

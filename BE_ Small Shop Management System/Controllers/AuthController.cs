@@ -22,27 +22,30 @@ namespace BE__Small_Shop_Management_System.Controllers
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
-
-        public AuthController(AppDbContext context, IConfiguration configuration, EmailService emailService)
+        private readonly PasswordPolicyService _passwordPolicyService;
+        public AuthController(AppDbContext context, IConfiguration configuration, EmailService emailService, PasswordPolicyService passwordPolicyService)
         {
             _context = context;
             _configuration = configuration;
             _emailService = emailService;
+            _passwordPolicyService = passwordPolicyService;
         }
 
-        // =================== REGISTER ===================
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto registerDto)
         {
             try
             {
                 if (!ValidationHelper.IsValidEmail(registerDto.Email))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không hợp lệ", null, 400));
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Email không hợp lệ"));
 
                 if (!string.IsNullOrEmpty(registerDto.PhoneNumber) &&
                     !ValidationHelper.IsValidPhoneNumber(registerDto.PhoneNumber))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ", null, 400));
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ"));
 
+                // ✅ Kiểm tra mật khẩu theo policy
+                if (!_passwordPolicyService.ValidatePassword(registerDto.Password, out var errors))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
 
                 var exists = await _context.Users.AnyAsync(u =>
                     u.Username == registerDto.Username ||
@@ -51,7 +54,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 );
 
                 if (exists)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Tên đăng nhập, email hoặc số điện thoại đã tồn tại", null, 400));
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Tên đăng nhập, email hoặc số điện thoại đã tồn tại"));
 
                 var passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
 
@@ -69,7 +72,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     CreatedAt = DateTime.Now,
                     PasswordHash = passwordHash,
                     IsEmailConfirmed = false,
-                    IsActive = false, // mặc định chưa kích hoạt
+                    IsActive = false,
                     VerificationCode = verificationCode,
                     VerificationExpiry = expiry
                 };
@@ -77,7 +80,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 await _context.Users.AddAsync(user);
                 await _context.SaveChangesAsync();
 
-                // Gán role mặc định = Customer
+                // Gán role mặc định
                 var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
                 if (customerRole == null)
                 {
@@ -97,10 +100,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 var verificationLink = $"{Request.Scheme}://{Request.Host}/api/auth/verify-email?email={user.Email}&code={verificationCode}";
                 var subject = "Xác minh email đăng ký tài khoản";
                 var body = EmailTemplateHelper.GetRegisterBody(verificationCode, verificationLink);
-
                 await _emailService.SendEmailAsync(user.Email, subject, body);
-
-
 
                 var responseData = new
                 {
@@ -114,13 +114,14 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Role = customerRole.Name
                 };
 
-                return Ok(ApiResponse<object>.SuccessResponse(responseData, "Đăng ký thành công, vui lòng kiểm tra email để xác thực", 200));
+                return Ok(ApiResponse<object>.SuccessResponse(responseData, "Đăng ký thành công, vui lòng kiểm tra email để xác thực"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi khi đăng ký: {ex.Message}", null, 500));
+                return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi khi đăng ký: {ex.Message}", new[] { ex.Message }, 500));
             }
         }
+
 
         // =================== VERIFY EMAIL ===================
         [HttpGet("verify-email")]
