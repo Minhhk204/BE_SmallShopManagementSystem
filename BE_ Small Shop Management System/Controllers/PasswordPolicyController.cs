@@ -11,89 +11,59 @@ namespace BE__Small_Shop_Management_System.Controllers
     [Route("api/[controller]")]
     public class PasswordPolicyController : ControllerBase
     {
-        private readonly PasswordPolicyService _policyService;
+        private readonly PasswordPolicyService _service;
 
-        public PasswordPolicyController(PasswordPolicyService policyService)
+        public PasswordPolicyController(PasswordPolicyService service)
         {
-            _policyService = policyService;
+            _service = service;
         }
 
-        // ✅ Lấy chính sách
+        // GET: api/PasswordPolicy
         [HttpGet]
-        public IActionResult GetPolicy()
+        public async Task<IActionResult> GetPolicy()
         {
             try
             {
-                var policy = _policyService.GetPolicy();
-                var dto = new PasswordPolicyDto
-                {
-                    RequiredLength = policy.RequiredLength,
-                    RequireUppercase = policy.RequireUppercase,
-                    RequireLowercase = policy.RequireLowercase,
-                    RequireDigit = policy.RequireDigit,
-                    RequireNonAlphanumeric = policy.RequireNonAlphanumeric
-                };
-
-                return Ok(ApiResponse<PasswordPolicyDto>.SuccessResponse(dto, "Lấy chính sách mật khẩu thành công"));
+                var policy = await _service.GetPolicyAsync();
+                return Ok(ApiResponse<PasswordPolicy>.SuccessResponse(policy, "Lấy password policy thành công"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500,
-                    ApiResponse<string>.ErrorResponse("Lỗi khi lấy chính sách mật khẩu", new[] { ex.Message }, 500));
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy policy", new[] { ex.Message }, 500));
             }
         }
 
-        // ✅ Cập nhật chính sách
+        // PUT: api/PasswordPolicy
         [HttpPut]
-        public IActionResult UpdatePolicy([FromBody] PasswordPolicyDto dto)
+        public async Task<IActionResult> UpdatePolicy([FromBody] PasswordPolicyDto dto)
         {
             try
             {
-                if (dto == null)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Dữ liệu không hợp lệ"));
-
-                var policy = new PasswordPolicy
-                {
-                    RequiredLength = dto.RequiredLength,
-                    RequireUppercase = dto.RequireUppercase,
-                    RequireLowercase = dto.RequireLowercase,
-                    RequireDigit = dto.RequireDigit,
-                    RequireNonAlphanumeric = dto.RequireNonAlphanumeric
-                };
-
-                _policyService.UpdatePolicy(policy);
-
-                return Ok(ApiResponse<string>.SuccessResponse(null, "Cập nhật chính sách mật khẩu thành công"));
+                var policy = await _service.UpdatePolicyAsync(dto);
+                return Ok(ApiResponse<PasswordPolicy>.SuccessResponse(policy, "Cập nhật password policy thành công"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500,
-                    ApiResponse<string>.ErrorResponse("Lỗi khi cập nhật chính sách mật khẩu", new[] { ex.Message }, 500));
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi cập nhật policy", new[] { ex.Message }, 500));
             }
         }
 
-        // ✅ Validate mật khẩu
+        // POST: api/PasswordPolicy/validate
         [HttpPost("validate")]
         public IActionResult ValidatePassword([FromBody] string password)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(password))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không được để trống"));
-
-                var isValid = _policyService.ValidatePassword(password, out var errors);
+                var isValid = _service.ValidatePassword(password, out var errors);
 
                 if (!isValid)
-                {
-                    return BadRequest(ApiResponse<object>.ErrorResponse("Mật khẩu không hợp lệ", errors));
-                }
+                    return BadRequest(ApiResponse<object>.ErrorResponse("Mật khẩu không hợp lệ", errors, 400));
 
-                return Ok(ApiResponse<object>.SuccessResponse(new { IsValid = true }, "Mật khẩu hợp lệ"));
+                return Ok(ApiResponse<object>.SuccessResponse(null, "Mật khẩu hợp lệ"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500,
-                    ApiResponse<string>.ErrorResponse("Lỗi khi kiểm tra mật khẩu", new[] { ex.Message }, 500));
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi validate mật khẩu", new[] { ex.Message }, 500));
             }
         }
     }

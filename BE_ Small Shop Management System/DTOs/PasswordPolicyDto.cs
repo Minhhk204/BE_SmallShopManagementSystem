@@ -8,4 +8,5 @@
         public bool RequireDigit { get; set; }
         public bool RequireNonAlphanumeric { get; set; }
     }
+
 }
