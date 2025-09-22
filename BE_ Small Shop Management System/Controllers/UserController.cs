@@ -587,10 +587,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                 _unitOfWork.UserRepository.Update(user);
                 await _unitOfWork.CompleteAsync();
 
-                // Link reset password (cho frontend dùng)
-                var resetLink = $"{Request.Scheme}://{Request.Host}/reset-password?email={user.Email}&code={resetCode}";
                 var subject = "Đặt lại mật khẩu tài khoản";
-                var body = EmailTemplateHelper.GetForgotPasswordBody(resetCode, resetLink);
+                var body = EmailTemplateHelper.GetForgotPasswordBody(resetCode);
 
                 await _emailService.SendEmailAsync(user.Email, subject, body);
 

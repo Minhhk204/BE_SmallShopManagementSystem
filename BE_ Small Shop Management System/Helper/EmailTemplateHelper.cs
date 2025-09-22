@@ -14,14 +14,12 @@
         ";
         }
 
-        public static string GetForgotPasswordBody(string code, string resetLink)
+        public static string GetForgotPasswordBody(string code)
         {
             return $@"
             <h2>Xin chào,</h2>
             <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản.</p>
             <p>Mã xác thực của bạn là: <b>{code}</b></p>
-            <p>Hoặc nhấn vào liên kết sau để đặt lại mật khẩu:</p>
-            <a href='{resetLink}'>Đặt lại mật khẩu</a>
             <p><i>Mã có hiệu lực trong 10 phút.</i></p>
         ";
         }
