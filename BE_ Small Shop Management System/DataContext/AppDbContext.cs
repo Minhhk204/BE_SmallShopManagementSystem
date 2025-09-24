@@ -97,11 +97,11 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasIndex(f => new { f.UserId, f.ProductId })
                 .IsUnique();
 
-            // ==== Order -> Customer (User) ====
+            // ==== Order -> User ====
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.Customer)
-                .WithMany(u => u.Orders)
-                .HasForeignKey(o => o.CustomerId)
+                .HasOne(o => o.User)              // đổi Customer -> User
+                .WithMany(u => u.Orders)          // 1 User có nhiều Order
+                .HasForeignKey(o => o.UserId)     // đổi CustomerId -> UserId
                 .OnDelete(DeleteBehavior.Restrict);
 
             // ==== OrderItem (Order <-> Product) ====
@@ -126,9 +126,9 @@ namespace BE__Small_Shop_Management_System.DataContext
 
             // ==== CartItem (User <-> Product) ====
             modelBuilder.Entity<CartItem>()
-                .HasOne(c => c.Customer)
-                .WithMany()
-                .HasForeignKey(c => c.CustomerId)
+                .HasOne(c => c.User)              // đổi Customer -> User
+                .WithMany()                       // nếu chưa cần navigation property bên User
+                .HasForeignKey(c => c.UserId)     // đổi CustomerId -> UserId
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<CartItem>()

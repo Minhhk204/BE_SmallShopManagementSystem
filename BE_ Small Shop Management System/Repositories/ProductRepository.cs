@@ -13,11 +13,6 @@ namespace BE__Small_Shop_Management_System.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Product>> GetBySellerIdAsync(int sellerId)
-        {
-            return await _context.Products
-                .Where(p => p.SellerId == sellerId)
-                .ToListAsync();
-        }
+       
     }
 }

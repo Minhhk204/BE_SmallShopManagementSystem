@@ -3,16 +3,18 @@
     public class Order
     {
         public int Id { get; set; }
-        public int CustomerId { get; set; }
-        public User Customer { get; set; } = null!;
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public string Status { get; set; } = "New"; // New → Processing → Completed
+        public int UserId { get; set; }
 
+        public DateTime OrderDate { get; set; } = DateTime.Now;
+        public string Status { get; set; } = "Pending";
         public decimal TotalAmount { get; set; }
 
         // Quan hệ
+        public User User { get; set; } = null!;
+        public Payment Payment { get; set; }   // add this if missing
+
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-        public Payment? Payment { get; set; }
+
     }
 }

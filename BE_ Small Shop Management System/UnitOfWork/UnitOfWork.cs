@@ -20,6 +20,10 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
 
         public IFavoriteRepository FavoriteRepository { get; }
 
+        public ICartItemRepository CartItemRepository { get; }
+        public IOrderRepository OrderRepository { get; }
+        public IOrderItemRepository OrderItemRepository { get; }
+
         public UnitOfWork(
             AppDbContext context,
             IUserRepository userRepository,
@@ -31,7 +35,10 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             IProductRepository productRepository,
             IUserRoleRepository userRoleRepository,
             IRefreshTokenRepository refreshTokenRepository,
-            IFavoriteRepository favoriteRepository)
+            IFavoriteRepository favoriteRepository,
+            ICartItemRepository cartItemRepository,
+            IOrderRepository orderRepository,
+            IOrderItemRepository orderItemRepository)
 
         {
             _context = context;
@@ -45,6 +52,9 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             UserRoleRepository = userRoleRepository;
             RefreshTokenRepository = refreshTokenRepository;
             FavoriteRepository = favoriteRepository;
+            CartItemRepository = cartItemRepository;
+            OrderRepository = orderRepository;
+            OrderItemRepository = orderItemRepository;
         }
 
         public async Task<int> CompleteAsync()

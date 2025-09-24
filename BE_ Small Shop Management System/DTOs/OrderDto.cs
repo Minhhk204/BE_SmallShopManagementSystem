@@ -4,9 +4,10 @@
     {
         public int Id { get; set; }
         public decimal TotalAmount { get; set; }
-        public DateTime CreatedAt { get; set; }
-
-        // danh sách sản phẩm trong order
-        public List<OrderItemDto> Items { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public DateTime OrderDate { get; set; }
+        public string UserName { get; set; } = string.Empty; // 👈 thêm UserName
+        public List<OrderItemDto> Items { get; set; } = new();
     }
+
 }
