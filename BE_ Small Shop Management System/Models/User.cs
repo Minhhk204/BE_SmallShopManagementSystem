@@ -21,6 +21,7 @@
 
         public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
         public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();

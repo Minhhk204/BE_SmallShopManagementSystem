@@ -23,6 +23,7 @@ namespace BE__Small_Shop_Management_System.DataContext
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<InventoryHistory> InventoryHistories { get; set; }
+        public DbSet<Favorite> Favorites { get; set; }
 
         // ==== Bảng giỏ hàng & đơn hàng ====
         public DbSet<CartItem> CartItems { get; set; }
@@ -92,12 +93,9 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(up => up.PermissionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // ==== Product -> Seller (User) ====
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Seller)
-                .WithMany()
-                .HasForeignKey(p => p.SellerId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Favorite>()
+                .HasIndex(f => new { f.UserId, f.ProductId })
+                .IsUnique();
 
             // ==== Order -> Customer (User) ====
             modelBuilder.Entity<Order>()
