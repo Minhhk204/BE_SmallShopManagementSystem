@@ -8,11 +8,11 @@
         public decimal Price { get; set; }
         public int Stock { get; set; }   // tồn kho
         public string? ImageUrl { get; set; }
-
-        public int SellerId { get; set; }  // Người bán tạo
-        public User Seller { get; set; } = null!;
-
         // Quan hệ
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+        public ICollection<CartItem>? CartItems { get; set; }
+       
+
     }
 }

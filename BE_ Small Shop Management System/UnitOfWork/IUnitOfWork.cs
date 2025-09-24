@@ -14,6 +14,11 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
         IProductRepository ProductRepository { get; }
         IUserRoleRepository UserRoleRepository { get; }
         IRefreshTokenRepository RefreshTokenRepository { get; }
+        IFavoriteRepository FavoriteRepository { get; }
+
+        ICartItemRepository CartItemRepository { get; }
+        IOrderRepository OrderRepository { get; }
+        IOrderItemRepository OrderItemRepository { get; }
         Task<int> CompleteAsync();
     }
 }

@@ -29,9 +29,11 @@ namespace BE__Small_Shop_Management_System.Mappings
             // Product mapping
             CreateMap<Product, ProductDto>().ReverseMap();
 
-            // Order mapping
+           
             CreateMap<Order, OrderDto>();
             CreateMap<OrderItem, OrderItemDto>();
+            CreateMap<CartItem, CartItemDto>();
+            CreateMap<Favorite, FavoriteDto>();
         }
     }
 }
