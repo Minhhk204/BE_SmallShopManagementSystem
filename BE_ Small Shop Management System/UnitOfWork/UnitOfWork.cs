@@ -23,6 +23,7 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
         public ICartItemRepository CartItemRepository { get; }
         public IOrderRepository OrderRepository { get; }
         public IOrderItemRepository OrderItemRepository { get; }
+        public ICategoryRepository CategoryRepository { get; } 
 
         public UnitOfWork(
             AppDbContext context,
@@ -38,7 +39,8 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             IFavoriteRepository favoriteRepository,
             ICartItemRepository cartItemRepository,
             IOrderRepository orderRepository,
-            IOrderItemRepository orderItemRepository)
+            IOrderItemRepository orderItemRepository,
+            ICategoryRepository categoryRepository)
 
         {
             _context = context;
@@ -55,6 +57,7 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
             CartItemRepository = cartItemRepository;
             OrderRepository = orderRepository;
             OrderItemRepository = orderItemRepository;
+            CategoryRepository = categoryRepository;
         }
 
         public async Task<int> CompleteAsync()
