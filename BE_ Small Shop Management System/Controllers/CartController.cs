@@ -26,7 +26,9 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
                 var cartItems = await _unitOfWork.CartItemRepository.GetCartByUserAsync(userId);
 
                 var result = cartItems.Select(ci => new CartItemDto
@@ -55,7 +57,9 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (quantity <= 0)
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số lượng phải lớn hơn 0"));
 
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
                 await _unitOfWork.CartItemRepository.AddOrUpdateCartItemAsync(userId, productId, quantity);
                 await _unitOfWork.CompleteAsync();
 
@@ -73,7 +77,9 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
                 var cartItem = await _unitOfWork.CartItemRepository.GetByUserAndProductAsync(userId, productId);
 
                 if (cartItem == null)

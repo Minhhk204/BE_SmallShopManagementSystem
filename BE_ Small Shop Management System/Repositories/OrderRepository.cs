@@ -55,6 +55,29 @@ namespace BE__Small_Shop_Management_System.Repositories
                 })
                 .FirstOrDefaultAsync();
         }
-
+        public async Task<IEnumerable<OrderHistoryDto>> GetOrderHistoryByUserAsync(int userId)
+        {
+            return await _dbSet
+                .Where(o => o.UserId == userId)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .OrderByDescending(o => o.OrderDate)
+                .Select(o => new OrderHistoryDto
+                {
+                    Id = o.Id,
+                    OrderDate = o.OrderDate,
+                    Status = o.Status,
+                    TotalAmount = o.TotalAmount,
+                    Items = o.OrderItems.Select(oi => new OrderHistoryItemDto
+                    {
+                        ProductId = oi.ProductId,
+                        ProductName = oi.Product.Name,
+                        Quantity = oi.Quantity,
+                        Price = oi.Price,
+                        ImageUrl = oi.Product.ImageUrl
+                    }).ToList()
+                })
+                .ToListAsync();
+        }
     }
 }

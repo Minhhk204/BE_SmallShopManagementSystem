@@ -84,6 +84,26 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
             }
         }
+        // 📌 Lịch sử mua hàng của user
+        [HttpGet("history/{userId}")]
+        public async Task<IActionResult> GetOrderHistory(int userId)
+        {
+            try
+            {
+                if (userId <= 0)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("UserId không hợp lệ"));
 
+                var history = await _unitOfWork.OrderRepository.GetOrderHistoryByUserAsync(userId);
+
+                if (!history.Any())
+                    return NotFound(ApiResponse<string>.ErrorResponse("Không có đơn hàng nào"));
+
+                return Ok(ApiResponse<IEnumerable<OrderHistoryDto>>.SuccessResponse(history, "Lấy lịch sử đơn hàng thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi server", new[] { ex.Message }, 500));
+            }
+        }
     }
 }

@@ -99,6 +99,7 @@ namespace BE__Small_Shop_Management_System
             builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
             // Services
             builder.Services.AddScoped<RolePermissionService>();

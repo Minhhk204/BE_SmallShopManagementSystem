@@ -7,5 +7,6 @@ namespace BE__Small_Shop_Management_System.Repositories
     {
         Task<IEnumerable<OrderDto>> GetOrdersByUserAsync(int userId);
         Task<OrderDto?> GetOrderWithItemsAsync(int orderId);
+        Task<IEnumerable<OrderHistoryDto>> GetOrderHistoryByUserAsync(int userId);
     }
 }

@@ -19,6 +19,7 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
         ICartItemRepository CartItemRepository { get; }
         IOrderRepository OrderRepository { get; }
         IOrderItemRepository OrderItemRepository { get; }
+        ICategoryRepository CategoryRepository { get; }
         Task<int> CompleteAsync();
     }
 }
