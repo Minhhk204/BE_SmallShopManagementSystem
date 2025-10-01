@@ -30,125 +30,194 @@ namespace BE__Small_Shop_Management_System.Controllers
         [Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var products = await _unitOfWork.ProductRepository.GetAllAsync();
-                var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
-                return Ok(ApiResponse<IEnumerable<ProductDto>>.SuccessResponse(productDtos, "Lấy danh sách sản phẩm thành công"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse<string>.ErrorResponse($"Lỗi: {ex.Message}"));
-            }
+            var products = await _unitOfWork.ProductRepository
+                .Query()
+                .Include(p => p.Category)
+                .ToListAsync();
+
+            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+
+            return Ok(ApiResponse<IEnumerable<ProductDto>>.SuccessResponse(productDtos, "Lấy danh sách sản phẩm thành công"));
         }
+
 
         // Lấy chi tiết sản phẩm
         [HttpGet("{id}")]
         [Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
-                if (product == null)
-                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
+            var product = await _unitOfWork.ProductRepository
+                .Query()
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-                var productDto = _mapper.Map<ProductDto>(product);
-                return Ok(ApiResponse<ProductDto>.SuccessResponse(productDto, "Lấy chi tiết sản phẩm thành công"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse<string>.ErrorResponse($"Lỗi: {ex.Message}"));
-            }
+            if (product == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
+
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(_mapper.Map<ProductDto>(product), "Lấy chi tiết sản phẩm thành công"));
         }
 
-        // Tìm kiếm + phân trang
-        [HttpGet("search")]
-        [Authorize(Policy = PermissionConstants.Products.View)]
-        public async Task<IActionResult> Search([FromQuery] ProductFilterRequest filter)
+
+
+        // ================== PAGING ==================
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged(
+             [FromQuery] decimal? minPrice,
+             [FromQuery] decimal? maxPrice,
+             [FromQuery] int pageNumber = 1,
+             [FromQuery] int pageSize = 10)
         {
             try
             {
-                var query = _unitOfWork.ProductRepository.Query();
+                var query = _unitOfWork.ProductRepository.GetProductsWithCategory();
 
-                if (!string.IsNullOrWhiteSpace(filter.Keyword))
-                    query = query.Where(p => p.Name.Contains(filter.Keyword) ||
-                                             (p.Description != null && p.Description.Contains(filter.Keyword)));
+                if (minPrice.HasValue)
+                    query = query.Where(p => p.Price >= minPrice.Value);
 
-                if (filter.MinPrice.HasValue)
-                    query = query.Where(p => p.Price >= filter.MinPrice.Value);
-
-                if (filter.MaxPrice.HasValue)
-                    query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+                if (maxPrice.HasValue)
+                    query = query.Where(p => p.Price <= maxPrice.Value);
 
                 var totalItems = await query.CountAsync();
 
-                var products = await query
-                    .Skip((filter.PageNumber - 1) * filter.PageSize)
-                    .Take(filter.PageSize)
+                var items = await query
+                    .OrderBy(p => p.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new ProductDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        Stock = p.Stock,
+                        ImageUrl = p.ImageUrl,
+                        CategoryName = p.Category != null ? p.Category.Name : ""
+                    })
                     .ToListAsync();
-
-                var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
 
                 var result = new PagedResult<ProductDto>
                 {
-                    Items = productDtos,
                     TotalItems = totalItems,
-                    PageNumber = filter.PageNumber,
-                    PageSize = filter.PageSize
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Items = items
                 };
 
-                return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(result, "Lấy danh sách sản phẩm thành công"));
+                return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(result, "Lấy danh sách sản phẩm phân trang thành công"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}"));
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi phân trang sản phẩm", new[] { ex.Message }, 500));
             }
         }
+
+
+        // ================== SEARCH ==================
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search(
+            [FromQuery] string keyword,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(keyword))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Từ khóa là bắt buộc", null, 400));
+
+                var query = _unitOfWork.ProductRepository
+                    .Query()
+                    .Include(p => p.Category)
+                    .Where(p => p.Name.ToLower().Contains(keyword.ToLower()));
+
+                var totalItems = await query.CountAsync();
+
+                if (totalItems == 0)
+                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm nào khớp với từ khóa", null, 404));
+
+                var items = await query
+                    .OrderBy(p => p.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new ProductDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        Stock = p.Stock,
+                        ImageUrl = p.ImageUrl,
+                        CategoryName = p.Category != null ? p.Category.Name : ""
+                    })
+                    .ToListAsync();
+
+                var result = new PagedResult<ProductDto>
+                {
+                    TotalItems = totalItems,
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Items = items
+                };
+
+                return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(result, "Tìm kiếm sản phẩm thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi tìm kiếm sản phẩm", new[] { ex.Message }, 500));
+            }
+        }
+
 
         // Tạo sản phẩm
         [HttpPost]
         [Authorize(Policy = PermissionConstants.Products.Create)]
         public async Task<IActionResult> Create([FromBody] ProductDto productDto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Dữ liệu không hợp lệ"));
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse<string>.ErrorResponse("Dữ liệu không hợp lệ"));
 
-                var product = _mapper.Map<Product>(productDto);
+            // Tìm category theo CategoryName
+            var category = await _unitOfWork.CategoryRepository
+                .Query()
+                .FirstOrDefaultAsync(c => c.Name == productDto.CategoryName);
 
-                await _unitOfWork.ProductRepository.AddAsync(product);
-                await _unitOfWork.CompleteAsync();
+            if (category == null)
+                return BadRequest(ApiResponse<string>.ErrorResponse("Danh mục không tồn tại"));
 
-                return Ok(ApiResponse<ProductDto>.SuccessResponse(_mapper.Map<ProductDto>(product), "Tạo sản phẩm thành công"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse<string>.ErrorResponse($"Lỗi: {ex.Message}"));
-            }
+            var product = _mapper.Map<Product>(productDto);
+            product.CategoryId = category.Id;
+
+            await _unitOfWork.ProductRepository.AddAsync(product);
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(_mapper.Map<ProductDto>(product), "Tạo sản phẩm thành công"));
         }
+
 
         // Sửa sản phẩm
         [HttpPut("{id}")]
         [Authorize(Policy = PermissionConstants.Products.Update)]
         public async Task<IActionResult> Update(int id, [FromBody] ProductDto productDto)
         {
-            try
-            {
-                var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
-                if (product == null)
-                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
+            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
+            if (product == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
 
-                _mapper.Map(productDto, product);
-                await _unitOfWork.CompleteAsync();
+            var category = await _unitOfWork.CategoryRepository
+                .Query()
+                .FirstOrDefaultAsync(c => c.Name == productDto.CategoryName);
 
-                return Ok(ApiResponse<ProductDto>.SuccessResponse(_mapper.Map<ProductDto>(product), "Cập nhật sản phẩm thành công"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse<string>.ErrorResponse($"Lỗi: {ex.Message}"));
-            }
+            if (category == null)
+                return BadRequest(ApiResponse<string>.ErrorResponse("Danh mục không tồn tại"));
+
+            _mapper.Map(productDto, product);
+            product.CategoryId = category.Id;
+
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(ApiResponse<ProductDto>.SuccessResponse(_mapper.Map<ProductDto>(product), "Cập nhật sản phẩm thành công"));
         }
 
         // Xóa sản phẩm
@@ -156,21 +225,15 @@ namespace BE__Small_Shop_Management_System.Controllers
         [Authorize(Policy = PermissionConstants.Products.Delete)]
         public async Task<IActionResult> Delete(int id)
         {
-            try
-            {
-                var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
-                if (product == null)
-                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
+            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
+            if (product == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
 
-                _unitOfWork.ProductRepository.Delete(product);
-                await _unitOfWork.CompleteAsync();
+            _unitOfWork.ProductRepository.Delete(product);
+            await _unitOfWork.CompleteAsync();
 
-                return Ok(ApiResponse<string>.SuccessResponse("Xóa sản phẩm thành công"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse<string>.ErrorResponse($"Lỗi: {ex.Message}"));
-            }
+            return Ok(ApiResponse<string>.SuccessResponse("Xóa sản phẩm thành công"));
         }
+
     }
 }

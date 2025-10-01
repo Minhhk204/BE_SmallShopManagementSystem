@@ -144,12 +144,17 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(ih => ih.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             base.OnModelCreating(modelBuilder);
-
-
 
         }
     }
 
-}
+}   
 
