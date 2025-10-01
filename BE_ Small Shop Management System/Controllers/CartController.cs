@@ -20,7 +20,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        // 📌 Lấy giỏ hàng
+        //Lấy giỏ hàng
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
@@ -48,7 +48,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Thêm vào giỏ hàng
+        //Thêm vào giỏ hàng
         [HttpPost("{productId}")]
         public async Task<IActionResult> AddToCart(int productId, [FromQuery] int quantity = 1)
         {
@@ -71,7 +71,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Xóa sản phẩm khỏi giỏ
+        //Xóa sản phẩm khỏi giỏ
         [HttpDelete("{productId}")]
         public async Task<IActionResult> RemoveFromCart(int productId)
         {

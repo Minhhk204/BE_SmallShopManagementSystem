@@ -19,7 +19,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        // 📌 Lấy tất cả category kèm product
+        //Lấy tất cả category kèm product
         [HttpGet]
         public async Task<IActionResult> GetAllCategories()
         {
@@ -39,7 +39,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Lấy chi tiết 1 category theo id
+        //Lấy chi tiết 1 category theo id
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(int id)
         {
@@ -62,7 +62,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Tạo mới category
+        //Tạo mới category
         [HttpPost]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto createDto)
         {
@@ -96,7 +96,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
 
-        // 📌 Cập nhật category
+        //Cập nhật category
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryDto updateDto)
         {
@@ -139,7 +139,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
 
-        // 📌 Xóa category
+        //Xóa category
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {

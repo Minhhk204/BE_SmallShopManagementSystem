@@ -14,7 +14,7 @@ namespace BE__Small_Shop_Management_System.Repositories
             return await _context.Users
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
-                .Where(u => !u.IsDeleted) // 👈 chỉ lấy user chưa xóa
+                .Where(u => !u.IsDeleted)
                 .ToListAsync();
         }
 
@@ -24,7 +24,7 @@ namespace BE__Small_Shop_Management_System.Repositories
             return await _context.Users
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted); // 👈 check luôn IsDeleted
+                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted); 
         }
 
         // Lấy 1 user theo username kèm role

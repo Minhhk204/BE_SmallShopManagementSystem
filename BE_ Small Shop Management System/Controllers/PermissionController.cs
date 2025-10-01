@@ -21,9 +21,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        /// <summary>
         /// Lấy toàn bộ permissions
-        /// </summary>
         [HttpGet]
         [Authorize(Policy = PermissionConstants.Permissions.View)]
         public async Task<IActionResult> GetAll()
@@ -47,9 +45,8 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        /// <summary>
+
         /// Lấy chi tiết permission theo id
-        /// </summary>
         [HttpGet("{id}")]
         [Authorize(Policy = PermissionConstants.Permissions.View)]
         public async Task<IActionResult> GetById(int id)
@@ -76,9 +73,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        /// <summary>
         /// Tìm kiếm permission theo keyword
-        /// </summary>
         [HttpGet("search")]
         [Authorize(Policy = PermissionConstants.Permissions.View)]
         public async Task<IActionResult> Search([FromQuery] string keyword)

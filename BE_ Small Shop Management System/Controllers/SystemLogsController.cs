@@ -78,29 +78,29 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             var query = _unitOfWork.SystemLogRepository.Query();
 
-            // ✅ Lọc UserName
+            //Lọc UserName
             if (!string.IsNullOrEmpty(filter.UserName))
                 query = query.Where(l => l.User != null && l.User.Username.Contains(filter.UserName));
 
-            // ✅ Lọc Action
+            //Lọc Action
             if (!string.IsNullOrEmpty(filter.Action))
                 query = query.Where(l => l.Action.Contains(filter.Action));
 
-            // ✅ Lọc Method
+            //Lọc Method
             if (!string.IsNullOrEmpty(filter.Method))
                 query = query.Where(l => l.Method == filter.Method);
 
-            // ✅ Lọc StatusCode
+            //Lọc StatusCode
             if (filter.StatusCode.HasValue)
                 query = query.Where(l => l.StatusCode == filter.StatusCode.Value);
-            // ✅ Lọc khoảng thời gian
+            //Lọc khoảng thời gian
             if (filter.FromDate.HasValue)
                 query = query.Where(l => l.CreatedAt >= filter.FromDate.Value);
 
             if (filter.ToDate.HasValue)
                 query = query.Where(l => l.CreatedAt <= filter.ToDate.Value);
 
-            // ✅ Lọc Duration
+            //Lọc Duration
             if (filter.MinDuration.HasValue)
                 query = query.Where(l => l.Duration >= filter.MinDuration.Value);
 

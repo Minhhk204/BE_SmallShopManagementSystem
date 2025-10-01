@@ -26,7 +26,7 @@ namespace BE__Small_Shop_Management_System.Middleware
 
                     if (user == null)
                     {
-                        // ❌ User không tồn tại → 401
+                        //User không tồn tại → 401
                         await LogSystem(db, userId, null, context, "Unauthorized - User not found", StatusCodes.Status401Unauthorized);
 
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -36,7 +36,7 @@ namespace BE__Small_Shop_Management_System.Middleware
 
                     if (!user.IsActive)
                     {
-                        // ❌ User bị khóa → 403
+                        //User bị khóa → 403
                         await LogSystem(db, user.Id, user.Username, context, "Forbidden - User is deactivated", StatusCodes.Status403Forbidden);
 
                         context.Response.StatusCode = StatusCodes.Status403Forbidden;

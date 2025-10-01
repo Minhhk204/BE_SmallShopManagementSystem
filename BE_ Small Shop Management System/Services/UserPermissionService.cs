@@ -23,7 +23,7 @@ namespace BE__Small_Shop_Management_System.Services
             if (includeRolePermissions)
             {
                 // lấy role của user -> quyền từ role
-                var roles = await _uow.UserRepository.GetRolesAsync(userId); // đảm bảo IUserRepository có hàm này
+                var roles = await _uow.UserRepository.GetRolesAsync(userId);
                 var roleIds = roles.Select(r => r.Id).ToList();
 
                 var rolePerms = new List<Permission>();

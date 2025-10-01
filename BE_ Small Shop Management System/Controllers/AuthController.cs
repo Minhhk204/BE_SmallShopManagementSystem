@@ -1,5 +1,4 @@
-﻿
-using BE__Small_Shop_Management_System.DataContext;
+﻿using BE__Small_Shop_Management_System.DataContext;
 using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
@@ -23,12 +22,14 @@ namespace BE__Small_Shop_Management_System.Controllers
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
         private readonly PasswordPolicyService _passwordPolicyService;
-        public AuthController(AppDbContext context, IConfiguration configuration, EmailService emailService, PasswordPolicyService passwordPolicyService)
+        private readonly JwtService _jwtService;
+        public AuthController(AppDbContext context, IConfiguration configuration, EmailService emailService, PasswordPolicyService passwordPolicyService, JwtService jwtService)
         {
             _context = context;
             _configuration = configuration;
             _emailService = emailService;
             _passwordPolicyService = passwordPolicyService;
+            _jwtService = jwtService;
         }
 
         [HttpPost("register")]
@@ -43,7 +44,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     !ValidationHelper.IsValidPhoneNumber(registerDto.PhoneNumber))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ"));
 
-                // ✅ Kiểm tra mật khẩu theo policy
+                //Kiểm tra mật khẩu theo policy
                 if (!_passwordPolicyService.ValidatePassword(registerDto.Password, out var errors))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
 
@@ -140,9 +141,9 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (user.VerificationCode != code || user.VerificationExpiry < DateTime.Now)
                     return BadRequest(ApiResponse<string>.ErrorResponse("Mã xác thực không hợp lệ hoặc đã hết hạn", null, 400));
 
-                // ✅ Update trạng thái
+                // Update trạng thái
                 user.IsActive = true;
-                user.IsEmailConfirmed = true;   // 👈 Quan trọng
+                user.IsEmailConfirmed = true;   
                 user.VerificationCode = null;
                 user.VerificationExpiry = null;
 
@@ -189,7 +190,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var permissions = rolePermissions.Union(directPermissions).Distinct().ToList();
 
-                var token = GenerateJwtToken(user, roles, permissions);
+                var token = _jwtService.GenerateToken(user, roles, permissions);
 
                 var refreshToken = new RefreshToken
                 {
@@ -251,7 +252,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var permissions = rolePermissions.Union(directPermissions).Distinct().ToList();
 
-                var newAccessToken = GenerateJwtToken(user, roles, permissions);
+                var newAccessToken = _jwtService.GenerateToken(user, roles, permissions);
 
                 var newRefreshToken = new RefreshToken
                 {
@@ -302,36 +303,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // =================== HELPERS ===================
-        private string GenerateJwtToken(User user, List<string> roles, List<string> permissions)
-        {
-            var jwtSettings = _configuration.GetSection("Jwt");
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username ?? string.Empty),
-                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
-            };
-
-            foreach (var role in roles)
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            foreach (var permission in permissions)
-                claims.Add(new Claim("permission", permission));
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings["ExpireMinutes"])),
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-      
+     
     }
 }

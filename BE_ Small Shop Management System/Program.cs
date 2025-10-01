@@ -82,32 +82,10 @@ namespace BE__Small_Shop_Management_System
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]))
                 };
             });
-
-
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddScoped<IUnitOfWork, BE__Small_Shop_Management_System.UnitOfWork.UnitOfWork>();
-            builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
-            builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-            builder.Services.AddScoped<IProductRepository, ProductRepository>();
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-            builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
-            builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
-            builder.Services.AddScoped<ISystemLogRepository, SystemLogRepository>();
-            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-            builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
-            builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
-            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-            builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-
-            // Services
-            builder.Services.AddScoped<RolePermissionService>();
-            builder.Services.AddScoped<UserPermissionService>();
-            builder.Services.AddScoped<JwtService>();
-            builder.Services.AddScoped<EmailService>();
-            builder.Services.AddScoped<PasswordPolicyService>();
-
+            // Middleware auto đăng ký Repository + Service
+            builder.Services.AddRepositoriesAndServices();
 
             builder.Services.AddAuthorization(options =>
             {
