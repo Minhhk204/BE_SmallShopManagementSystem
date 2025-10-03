@@ -23,7 +23,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _mapper = mapper;
         }
 
-        // 📌 Lấy danh sách yêu thích
+        //Lấy danh sách yêu thích
         [HttpGet]
         public async Task<IActionResult> GetFavorites()
         {
@@ -51,7 +51,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Thêm sản phẩm vào yêu thích
+        //Thêm sản phẩm vào yêu thích
         [HttpPost("{productId}")]
         public async Task<IActionResult> AddFavorite(int productId)
         {
@@ -83,7 +83,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Xóa sản phẩm khỏi yêu thích
+        //Xóa sản phẩm khỏi yêu thích
         [HttpDelete("{productId}")]
         public async Task<IActionResult> RemoveFavorite(int productId)
         {

@@ -19,7 +19,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        // 📌 Lấy chi tiết item theo Id
+        //Lấy chi tiết item theo Id
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {

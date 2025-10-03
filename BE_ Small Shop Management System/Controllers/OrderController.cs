@@ -22,7 +22,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        // 📌 Tạo đơn hàng từ giỏ
+        //Tạo đơn hàng từ giỏ
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout()
         {
@@ -54,7 +54,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 _unitOfWork.CartItemRepository.DeleteRange(cartItems);
                 await _unitOfWork.CompleteAsync();
 
-                // 🔁 Gọi lại DTO sau khi lưu xong
+                //Gọi lại DTO sau khi lưu xong
                 var orderDto = await _unitOfWork.OrderRepository.GetOrderWithItemsAsync(order.Id);
 
                 return Ok(ApiResponse<OrderDto>.SuccessResponse(orderDto, "Đặt hàng thành công"));
@@ -65,7 +65,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Lấy danh sách đơn hàng của user
+        //Lấy danh sách đơn hàng của user
         [HttpGet]
         public async Task<IActionResult> GetOrders()
         {
@@ -84,7 +84,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
             }
         }
-        // 📌 Lịch sử mua hàng của user
+        //Lịch sử mua hàng của user
         [HttpGet("history/{userId}")]
         public async Task<IActionResult> GetOrderHistory(int userId)
         {

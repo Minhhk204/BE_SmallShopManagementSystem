@@ -306,7 +306,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== CREATE USER BY ADMIN ==================
         [HttpPost]
-        [Authorize(Policy = PermissionConstants.Users.Create)]
+        [Authorize(Policy = PermissionConstants.Users.Create)] 
         public async Task<IActionResult> Create([FromBody] UserDto dto)
         {
             try
@@ -314,29 +314,29 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Email))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng và Email là bắt buộc"));
 
-                // 🔹 Check trùng Username
+                //Check trùng Username
                 if (await _unitOfWork.UserRepository.ExistsAsync(u => u.Username == dto.Username))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Tên người dùng đã tồn tại"));
 
-                // 🔹 Check trùng Email
+                //Check trùng Email
                 if (await _unitOfWork.UserRepository.ExistsAsync(u => u.Email == dto.Email))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Email đã tồn tại"));
 
-                // 🔹 Check trùng Phone
+                //Check trùng Phone
                 if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) &&
                     await _unitOfWork.UserRepository.ExistsAsync(u => u.PhoneNumber == dto.PhoneNumber))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại đã tồn tại"));
 
-                // 🔹 Validate định dạng Email
+                //Validate định dạng Email
                 if (!ValidationHelper.IsValidEmail(dto.Email))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Email không đúng định dạng"));
 
-                // 🔹 Validate định dạng Phone
+                //Validate định dạng Phone
                 if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) &&
                     !ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)"));
 
-                // 🔹 Hash password (nếu có)
+                //Hash password (nếu có)
                 string passwordHash = string.Empty;
                 if (!string.IsNullOrWhiteSpace(dto.Password))
                 {
@@ -356,14 +356,14 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Address = dto.Address,
                     CreatedAt = dto.CreatedAt == default ? DateTime.UtcNow : dto.CreatedAt,
                     PasswordHash = passwordHash,
-                    IsActive = dto.IsActive,       // Admin chọn có active hay không
-                    IsEmailConfirmed = true        // ✅ Mặc định đã xác thực email
+                    IsActive = dto.IsActive,     
+                    IsEmailConfirmed = true        
                 };
 
                 await _unitOfWork.UserRepository.AddAsync(user);
                 await _unitOfWork.CompleteAsync();
 
-                // 🔹 Gán roles (nếu có)
+                //Gán roles (nếu có)
                 if (dto.RoleName != null && dto.RoleName.Any())
                 {
                     foreach (var roleName in dto.RoleName)
@@ -428,7 +428,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                         return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)", null, 400));
                 }
 
-                // ✅ Chỉ update các field cho phép
+                //Chỉ update các field cho phép
                 user.FullName = dto.FullName;
                 user.PhoneNumber = dto.PhoneNumber;
                 user.Address = dto.Address;
@@ -496,7 +496,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                         return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu hiện tại không đúng"));
                 }
 
-                // ✅ Validate mật khẩu theo policy
+                //Validate mật khẩu theo policy
                 if (!_passwordPolicyService.ValidatePassword(request.NewPassword, out var errors))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
 
@@ -614,7 +614,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
 
         }
-        /// </summary>
+        
         private string MaskEmail(string email)
         {
             var atIndex = email.IndexOf('@');
@@ -636,11 +636,11 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (user.VerificationCode != dto.Code || user.VerificationExpiry < DateTime.UtcNow)
                     return BadRequest(ApiResponse<string>.ErrorResponse("Mã xác thực không đúng hoặc đã hết hạn"));
 
-                // ✅ Validate mật khẩu theo policy
+                //Validate mật khẩu theo policy
                 if (!_passwordPolicyService.ValidatePassword(dto.NewPassword, out var errors))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
 
-                // Đặt lại mật khẩu
+                //Đặt lại mật khẩu
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
                 user.VerificationCode = null;
                 user.VerificationExpiry = null;
@@ -672,9 +672,6 @@ namespace BE__Small_Shop_Management_System.Controllers
                 Address = user.Address,
                 IsActive = user.IsActive,
                 IsDeleted = user.IsDeleted,
-                //RoleName = user.UserRoles != null && user.UserRoles.Any()
-                //    ? string.Join(", ", user.UserRoles.Select(ur => ur.Role.Name))
-                //    : ""
                 RoleName = user.UserRoles != null && user.UserRoles.Any()
                 ? user.UserRoles.Select(ur => ur.Role.Name).ToList()
                 : new List<string>()

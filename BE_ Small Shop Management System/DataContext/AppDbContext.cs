@@ -75,7 +75,7 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasOne(rp => rp.Role)
                 .WithMany(r => r.RolePermissions)
                 .HasForeignKey(rp => rp.RoleId)
-                .OnDelete(DeleteBehavior.Cascade); // 🔥 khi xóa Role thì tự động xóa RolePermission
+                .OnDelete(DeleteBehavior.Cascade); 
 
             // ==== User - Permission (N-N) ====
             modelBuilder.Entity<UserPermission>()
@@ -144,12 +144,17 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(ih => ih.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             base.OnModelCreating(modelBuilder);
-
-
 
         }
     }
 
-}
+}   
 

@@ -16,7 +16,7 @@ namespace BE__Small_Shop_Management_System.Services
             _context = context;
         }
 
-        // ✅ Lấy policy hiện tại trong DB (chỉ 1 bản ghi)
+        //Lấy policy hiện tại trong DB (chỉ 1 bản ghi)
         public async Task<PasswordPolicy> GetPolicyAsync()
         {
             var policy = await _context.PasswordPolicies.FirstOrDefaultAsync();
@@ -29,7 +29,7 @@ namespace BE__Small_Shop_Management_System.Services
             return policy;
         }
 
-        // ✅ Cập nhật policy
+        //Cập nhật policy
         public async Task<PasswordPolicy> UpdatePolicyAsync(PasswordPolicyDto dto)
         {
             var policy = await _context.PasswordPolicies.FirstOrDefaultAsync();
@@ -51,7 +51,7 @@ namespace BE__Small_Shop_Management_System.Services
             return policy;
         }
 
-        // ✅ Validate mật khẩu theo policy
+        //Validate mật khẩu theo policy
         public bool ValidatePassword(string password, out List<string> errors)
         {
             errors = new List<string>();

@@ -19,7 +19,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        // 📌 Lấy tất cả category kèm product
+        //Lấy tất cả category kèm product
         [HttpGet]
         public async Task<IActionResult> GetAllCategories()
         {
@@ -39,7 +39,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Lấy chi tiết 1 category theo id
+        //Lấy chi tiết 1 category theo id
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(int id)
         {
@@ -62,7 +62,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // 📌 Tạo mới category
+        //Tạo mới category
         [HttpPost]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto createDto)
         {
@@ -96,7 +96,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
 
-        // 📌 Cập nhật category
+        //Cập nhật category
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryDto updateDto)
         {
@@ -139,7 +139,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
 
-        // 📌 Xóa category
+        //Xóa category
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
@@ -152,10 +152,25 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (category == null)
                     return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy danh mục"));
 
+                // Lấy danh sách sản phẩm thuộc category này
+                var products = await _unitOfWork.ProductRepository
+                    .FindAsync(p => p.CategoryId == id);
+
+                if (products.Any())
+                {
+                    foreach (var product in products)
+                    {
+                        product.CategoryId = null; // bỏ liên kết category
+                        _unitOfWork.ProductRepository.Update(product);
+                    }
+                }
+
+                // Xóa category
                 _unitOfWork.CategoryRepository.Delete(category);
+
                 await _unitOfWork.CompleteAsync();
 
-                return Ok(ApiResponse<string>.SuccessResponse("Xóa danh mục thành công", "OK"));
+                return Ok(ApiResponse<string>.SuccessResponse("Xóa danh mục thành công và các sản phẩm đã được gỡ khỏi danh mục", "OK"));
             }
             catch (Exception ex)
             {
@@ -163,6 +178,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     ApiResponse<string>.ErrorResponse("Lỗi server", new[] { ex.Message }, 500));
             }
         }
+
     }
 
 
