@@ -205,6 +205,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var responseData = new
                 {
+                    UserId = user.Id,
                     username = user.Username,
                     email = user.Email,
                     roles,

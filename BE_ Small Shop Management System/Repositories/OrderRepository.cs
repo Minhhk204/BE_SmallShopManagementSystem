@@ -20,7 +20,7 @@ namespace BE__Small_Shop_Management_System.Repositories
                     TotalAmount = o.TotalAmount,
                     Status = o.Status,
                     OrderDate = o.OrderDate,
-                    UserName = o.User.Username, // 👈 lấy từ navigation User
+                    UserName = o.User.Username, //lấy từ navigation User
                     Items = o.OrderItems.Select(oi => new OrderItemDto
                     {
                         ProductId = oi.ProductId,

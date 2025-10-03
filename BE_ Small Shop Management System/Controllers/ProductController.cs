@@ -90,7 +90,9 @@ namespace BE__Small_Shop_Management_System.Controllers
                         Description = p.Description,
                         Price = p.Price,
                         Stock = p.Stock,
-                        ImageUrl = p.ImageUrl,
+                        ImageUrl = !string.IsNullOrEmpty(p.ImageUrl)
+                        ? $"{Request.Scheme}://{Request.Host}/images/{Path.GetFileName(p.ImageUrl)}"
+                        : null,
                         CategoryName = p.Category != null ? p.Category.Name : ""
                     })
                     .ToListAsync();
