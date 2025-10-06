@@ -39,7 +39,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 {
                     ProductId = f.ProductId,
                     ProductName = f.Product.Name,
-                    ImageUrl = f.Product.ImageUrl,
+                    ImageUrls = f.Product.Images.Select(img => img.ImageUrl).ToList(),
                     CreatedAt = f.CreatedAt
                 });
 

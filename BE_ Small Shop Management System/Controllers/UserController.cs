@@ -340,7 +340,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 string passwordHash = string.Empty;
                 if (!string.IsNullOrWhiteSpace(dto.Password))
                 {
-                    // ✅ Validate theo PasswordPolicy
+                    // Validate theo PasswordPolicy
                     if (!_passwordPolicyService.ValidatePassword(dto.Password, out var errors))
                         return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
 

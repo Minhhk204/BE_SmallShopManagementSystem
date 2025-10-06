@@ -125,7 +125,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                         Description = p.Description,
                         Price = p.Price,
                         Stock = p.Stock,
-                        ImageUrl = p.ImageUrl
+                        ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
                     }).ToList()
                 };
 

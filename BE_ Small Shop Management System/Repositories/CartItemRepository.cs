@@ -8,20 +8,22 @@ namespace BE__Small_Shop_Management_System.Repositories
     {
         public CartItemRepository(AppDbContext context) : base(context) { }
 
-        // Lấy CartItem theo user và product
+        // Lấy CartItem theo user và product, kèm product + ảnh
         public async Task<CartItem?> GetByUserAndProductAsync(int userId, int productId)
         {
             return await _dbSet
                 .Include(c => c.Product)
+                .ThenInclude(p => p.Images) // <-- include danh sách ảnh product
                 .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
         }
 
-        // Lấy tất cả CartItem của user
+        // Lấy tất cả CartItem của user, kèm product + ảnh
         public async Task<IEnumerable<CartItem>> GetCartByUserAsync(int userId)
         {
             return await _dbSet
-                .Include(c => c.Product)
                 .Where(c => c.UserId == userId)
+                .Include(c => c.Product)
+                .ThenInclude(p => p.Images) // <-- include danh sách ảnh product
                 .ToListAsync();
         }
 
@@ -47,6 +49,12 @@ namespace BE__Small_Shop_Management_System.Repositories
                 };
                 await _dbSet.AddAsync(cartItem);
             }
+        }
+
+        // Xóa CartItem
+        public void RemoveCartItem(CartItem cartItem)
+        {
+            _dbSet.Remove(cartItem);
         }
     }
 }
