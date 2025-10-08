@@ -4,7 +4,8 @@
     {
         public int ProductId { get; set; }
         public string ProductName { get; set; } = null!;
-        public string? ImageUrl { get; set; }
+        public List<string> ImageUrls { get; set; } = new();
         public DateTime CreatedAt { get; set; }
+        public ProductDto Product { get; set; }
     }
 }

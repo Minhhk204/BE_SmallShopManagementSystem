@@ -109,13 +109,7 @@ namespace BE__Small_Shop_Management_System
 
             builder.Services.AddSwaggerGen();
             var app = builder.Build();
-
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(
-              Path.Combine(Directory.GetCurrentDirectory(), "Images")),
-                RequestPath = "/images"
-            });
+            app.UseStaticFiles();// cho phep truy cap file tinh
 
             // Middleware log request/response
             app.UseRequestLogging();

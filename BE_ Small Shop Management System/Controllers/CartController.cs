@@ -1,5 +1,6 @@
 ﻿using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
+using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        //Lấy giỏ hàng
+        // Lấy giỏ hàng
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
@@ -29,16 +30,23 @@ namespace BE__Small_Shop_Management_System.Controllers
                 var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!int.TryParse(userIdClaim, out var userId))
                     return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
+
                 var cartItems = await _unitOfWork.CartItemRepository.GetCartByUserAsync(userId);
 
-                var result = cartItems.Select(ci => new CartItemDto
-                {
-                    ProductId = ci.ProductId,
-                    ProductName = ci.Product.Name,
-                    Quantity = ci.Quantity,
-                    Price = ci.Product.Price,
-                    ImageUrl = ci.Product.ImageUrl
-                });
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                var result = cartItems
+                    .Where(ci => ci.Product != null && ci.Product.IsActive)
+                    .Select(ci => new CartItemDto
+                    {
+                        ProductId = ci.ProductId,
+                        ProductName = ci.Product.Name,
+                        Quantity = ci.Quantity,
+                        Price = ci.Product.Price,
+                        ImageUrls = ci.Product.Images
+                            .Select(img => $"{baseUrl}{img.ImageUrl}") // build absolute URL
+                            .ToList()
+                    });
 
                 return Ok(ApiResponse<IEnumerable<CartItemDto>>.SuccessResponse(result, "Lấy giỏ hàng thành công"));
             }
@@ -47,6 +55,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
             }
         }
+
 
         //Thêm vào giỏ hàng
         [HttpPost("{productId}")]
@@ -60,6 +69,14 @@ namespace BE__Small_Shop_Management_System.Controllers
                 var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!int.TryParse(userIdClaim, out var userId))
                     return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
+
+                var product = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
+                if (product == null)
+                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
+
+                if (product.Stock == 0)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Sản phẩm đã hết hàng, không thể thêm vào giỏ"));
+
                 await _unitOfWork.CartItemRepository.AddOrUpdateCartItemAsync(userId, productId, quantity);
                 await _unitOfWork.CompleteAsync();
 
