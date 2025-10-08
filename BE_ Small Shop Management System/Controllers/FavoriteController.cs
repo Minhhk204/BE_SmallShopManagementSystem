@@ -23,7 +23,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             _mapper = mapper;
         }
 
-        //Lấy danh sách yêu thích
         [HttpGet]
         public async Task<IActionResult> GetFavorites()
         {
@@ -35,13 +34,25 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var favorites = await _unitOfWork.FavoriteRepository.GetFavoritesByUserAsync(userId);
 
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
                 var favoriteDtos = favorites.Select(f => new FavoriteDto
                 {
                     ProductId = f.ProductId,
                     ProductName = f.Product.Name,
-                    ImageUrls = f.Product.Images.Select(img => img.ImageUrl).ToList(),
-                    CreatedAt = f.CreatedAt
-                });
+                    ImageUrls = f.Product.Images.Select(img => $"{baseUrl}{img.ImageUrl}").ToList(),
+                    CreatedAt = f.CreatedAt,
+                    Product = new ProductDto
+                    {
+                        Id = f.Product.Id,
+                        Name = f.Product.Name,
+                        Description = f.Product.Description,
+                        Price = f.Product.Price,
+                        Stock = f.Product.Stock,
+                        ImageUrls = f.Product.Images.Select(img => $"{baseUrl}{img.ImageUrl}").ToList(),
+                        CategoryName = f.Product.Category != null ? f.Product.Category.Name : ""
+                    }
+                }).ToList();
 
                 return Ok(ApiResponse<IEnumerable<FavoriteDto>>.SuccessResponse(favoriteDtos, "Lấy danh sách yêu thích thành công"));
             }
@@ -50,6 +61,8 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
             }
         }
+
+
 
         //Thêm sản phẩm vào yêu thích
         [HttpPost("{productId}")]

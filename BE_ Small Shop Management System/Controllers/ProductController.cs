@@ -346,6 +346,43 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(ApiResponse<ProductDto>.SuccessResponse(resultDto, "Cập nhật sản phẩm thành công"));
         }
+        // ================== GET FEATURED PRODUCTS ==================
+        [HttpGet("featured")]
+        //[Authorize(Policy = PermissionConstants.Products.View)] //
+        public async Task<IActionResult> GetFeaturedProducts()
+        {
+            try
+            {
+                var featuredProducts = await _unitOfWork.ProductRepository
+                    .Query()
+                    .Include(p => p.Category)
+                    .Include(p => p.Images)
+                    .Where(p => p.IsActive && p.IsFeatured) // chỉ lấy sản phẩm đang hoạt động & nổi bật
+                    .OrderByDescending(p => p.Id)
+                    .Take(8) 
+                    .ToListAsync();
+
+                if (!featuredProducts.Any())
+                    return NotFound(ApiResponse<string>.ErrorResponse("Không có sản phẩm nổi bật nào."));
+
+                var dtos = featuredProducts.Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Stock = p.Stock,
+                    CategoryName = p.Category?.Name ?? string.Empty,
+                    ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
+                });
+
+                return Ok(ApiResponse<IEnumerable<ProductDto>>.SuccessResponse(dtos, "Lấy danh sách sản phẩm nổi bật thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy sản phẩm nổi bật", new[] { ex.Message }, 500));
+            }
+        }
 
 
         // ================== DELETE ==================
