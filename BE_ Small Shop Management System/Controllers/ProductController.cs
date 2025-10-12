@@ -140,7 +140,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== SEARCH ==================
         [HttpGet("search")]
-        [Authorize(Policy = PermissionConstants.Products.View)]
+        //[Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> Search(
             [FromQuery] string keyword,
             [FromQuery] int pageNumber = 1,
@@ -157,7 +157,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     .Query()
                     .Include(p => p.Category)
                     .Include(p => p.Images)
-
+                    .Where(p => p.IsActive)
                     .Where(p =>
                         p.Name.ToLower().Contains(lower) ||
                         (p.Description != null && p.Description.ToLower().Contains(lower)) ||

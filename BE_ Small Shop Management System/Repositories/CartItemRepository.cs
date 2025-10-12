@@ -50,6 +50,13 @@ namespace BE__Small_Shop_Management_System.Repositories
                 await _dbSet.AddAsync(cartItem);
             }
         }
+        // Lấy CartItem theo user và product 
+        public async Task<CartItem?> GetCartItemByUserAndProductAsync(int userId, int productId)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
+        }
+
 
         // Xóa CartItem
         public void RemoveCartItem(CartItem cartItem)

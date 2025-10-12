@@ -43,17 +43,5 @@ namespace BE__Small_Shop_Management_System.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        // Lấy lịch sử đơn hàng của user
-        public async Task<IEnumerable<OrderHistoryDto>> GetOrderHistoryByUserAsync(int userId)
-        {
-            return await _dbSet
-                .Where(o => o.UserId == userId)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product)
-                        .ThenInclude(p => p.Images)
-                .OrderByDescending(o => o.OrderDate)
-                .ProjectTo<OrderHistoryDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
-        }
     }
 }

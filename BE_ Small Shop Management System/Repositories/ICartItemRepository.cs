@@ -7,5 +7,7 @@ namespace BE__Small_Shop_Management_System.Repositories
         Task<CartItem?> GetByUserAndProductAsync(int userId, int productId);
         Task<IEnumerable<CartItem>> GetCartByUserAsync(int userId);
         Task AddOrUpdateCartItemAsync(int userId, int productId, int quantity);
+        Task<CartItem?> GetCartItemByUserAndProductAsync(int userId, int productId);
+
     }
 }

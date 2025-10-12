@@ -56,8 +56,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-
-        //Thêm vào giỏ hàng
+        // Thêm vào giỏ hàng
         [HttpPost("{productId}")]
         public async Task<IActionResult> AddToCart(int productId, [FromQuery] int quantity = 1)
         {
@@ -66,10 +65,12 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (quantity <= 0)
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số lượng phải lớn hơn 0"));
 
+                // Lấy userId từ token
                 var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!int.TryParse(userIdClaim, out var userId))
                     return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
 
+                // Lấy thông tin sản phẩm
                 var product = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
                 if (product == null)
                     return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
@@ -77,6 +78,22 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (product.Stock == 0)
                     return BadRequest(ApiResponse<string>.ErrorResponse("Sản phẩm đã hết hàng, không thể thêm vào giỏ"));
 
+                // Lấy thông tin sản phẩm trong giỏ (nếu có)
+                var existingCartItem = await _unitOfWork.CartItemRepository
+                    .GetCartItemByUserAndProductAsync(userId, productId);
+
+                int currentQuantityInCart = existingCartItem?.Quantity ?? 0;
+                int totalQuantityAfterAdd = currentQuantityInCart + quantity;
+
+                // Kiểm tra nếu số lượng vượt quá tồn kho
+                if (totalQuantityAfterAdd > product.Stock)
+                {
+                    int availableToAdd = product.Stock - currentQuantityInCart;
+                    if (availableToAdd <= 0)
+                        return BadRequest(ApiResponse<string>.ErrorResponse("Số lượng trong giỏ đã đạt giới hạn tồn kho"));
+                }
+
+                // Thêm hoặc cập nhật giỏ hàng
                 await _unitOfWork.CartItemRepository.AddOrUpdateCartItemAsync(userId, productId, quantity);
                 await _unitOfWork.CompleteAsync();
 
@@ -87,6 +104,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
             }
         }
+
 
         //Xóa sản phẩm khỏi giỏ
         [HttpDelete("{productId}")]

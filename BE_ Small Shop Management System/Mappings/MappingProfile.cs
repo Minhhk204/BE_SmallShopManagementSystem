@@ -53,15 +53,7 @@ namespace BE__Small_Shop_Management_System.Mappings
                     ? src.Product.Images.First().ImageUrl
                     : null));
 
-            // Order → OrderHistoryDto
-            CreateMap<Order, OrderHistoryDto>()
-                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems));
-
-            CreateMap<OrderItem, OrderHistoryItemDto>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product.Images.FirstOrDefault() != null
-                    ? src.Product.Images.First().ImageUrl
-                    : null));
+          
 
             CreateMap<Category, CategoryDto>();
             CreateMap<CartItem, CartItemDto>();
