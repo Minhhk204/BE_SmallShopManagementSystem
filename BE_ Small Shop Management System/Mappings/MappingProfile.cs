@@ -30,10 +30,10 @@ namespace BE__Small_Shop_Management_System.Mappings
                 .ForMember(dest => dest.Images, opt => opt.Ignore());
 
             CreateMap<ProductDto, Product>()
-                .ForMember(dest => dest.Category, opt => opt.Ignore()); // xử lý thủ công khi Create/Update
+                .ForMember(dest => dest.Category, opt => opt.Ignore()); 
 
-            CreateMap<UserRegisterDto, User>();   // Register DTO → Entity
-            CreateMap<UserLoginDto, User>();      // Login DTO → Entity
+            CreateMap<UserRegisterDto, User>();  
+            CreateMap<UserLoginDto, User>();   
 
             CreateMap<Role, RoleDto>().ReverseMap();
             CreateMap<Permission, PermissionDto>().ReverseMap();
@@ -42,18 +42,20 @@ namespace BE__Small_Shop_Management_System.Mappings
 
 
 
-            // Order → OrderDto
+           
             CreateMap<Order, OrderDto>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Username))
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems));
 
+           
             CreateMap<OrderItem, OrderItemDto>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.Product.Images.FirstOrDefault() != null
-                    ? src.Product.Images.First().ImageUrl
-                    : null));
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src =>
+                    src.Product.Images != null && src.Product.Images.Any()
+                        ? src.Product.Images.First().ImageUrl
+                        : null));
 
-          
+
 
             CreateMap<Category, CategoryDto>();
             CreateMap<CartItem, CartItemDto>();

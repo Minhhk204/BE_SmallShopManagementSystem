@@ -19,11 +19,11 @@ namespace BE__Small_Shop_Management_System.Services
         {
             var jwtSettings = _configuration.GetSection("Jwt");
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Username ?? string.Empty),
-        new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
-    };
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Username ?? string.Empty),
+                    new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+                };
 
             if (roles != null)
                 foreach (var role in roles.Where(r => !string.IsNullOrWhiteSpace(r)))

@@ -33,7 +33,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var cartItems = await _unitOfWork.CartItemRepository.GetCartByUserAsync(userId);
 
-                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                var baseUrl = $"{Request.Scheme}://{Request.Host}"; 
 
                 var result = cartItems
                     .Where(ci => ci.Product != null && ci.Product.IsActive)
@@ -44,7 +44,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                         Quantity = ci.Quantity,
                         Price = ci.Product.Price,
                         ImageUrls = ci.Product.Images
-                            .Select(img => $"{baseUrl}{img.ImageUrl}") // build absolute URL
+                            .Select(img => $"{baseUrl}{img.ImageUrl}") 
                             .ToList()
                     });
 
@@ -65,20 +65,19 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (quantity <= 0)
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số lượng phải lớn hơn 0"));
 
-                // Lấy userId từ token
+              
                 var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!int.TryParse(userIdClaim, out var userId))
                     return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
 
-                // Lấy thông tin sản phẩm
+                
                 var product = await _unitOfWork.ProductRepository.GetByIdAsync(productId);
                 if (product == null)
                     return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
 
-                if (product.Stock == 0)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Sản phẩm đã hết hàng, không thể thêm vào giỏ"));
+               if(product.Stock <= 0 )
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Sản phẩm đã hết hàng"));
 
-                // Lấy thông tin sản phẩm trong giỏ (nếu có)
                 var existingCartItem = await _unitOfWork.CartItemRepository
                     .GetCartItemByUserAndProductAsync(userId, productId);
 
@@ -102,6 +101,53 @@ namespace BE__Small_Shop_Management_System.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
+            }
+        }
+        // cập nhật trạng thái chọn sản phẩm trong giỏ
+        [HttpPatch("{productId}/select")]
+        public async Task<IActionResult> UpdateSelection(int productId, [FromQuery] bool isSelected)
+        {
+            try
+            {
+                // Lấy userId từ token
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
+
+                // Cập nhật trạng thái chọn sản phẩm
+                await _unitOfWork.CartItemRepository.UpdateSelectionAsync(userId, productId, isSelected);
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(ApiResponse<string>.SuccessResponse(
+                    isSelected ? "Đã chọn sản phẩm" : "Đã bỏ chọn sản phẩm"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse(
+                    $"Lỗi server: {ex.Message}", statusCode: 500));
+            }
+        }
+        // Cập nhật số lượng sản phẩm trong giỏ
+        [HttpPut("{productId}/quantity")]
+        public async Task<IActionResult> SetQuantity(int productId, [FromQuery] int quantity)
+        {
+            try
+            {
+                if (quantity < 0)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Số lượng không hợp lệ"));
+
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdClaim, out var userId))
+                    return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
+
+                await _unitOfWork.CartItemRepository.UpdateQuantityAsync(userId, productId, quantity);
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(ApiResponse<string>.SuccessResponse("Cập nhật số lượng thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse(ex.Message));
             }
         }
 

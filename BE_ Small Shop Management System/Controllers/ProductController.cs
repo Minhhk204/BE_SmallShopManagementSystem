@@ -3,6 +3,7 @@ using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
+using BE__Small_Shop_Management_System.Services;
 using BE__Small_Shop_Management_System.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,41 +18,17 @@ namespace BE__Small_Shop_Management_System.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IWebHostEnvironment _env;
+        private readonly FileUploadService _fileUploadService;
 
-        public ProductController(IUnitOfWork unitOfWork, IMapper mapper, IWebHostEnvironment env)
+        public ProductController(IUnitOfWork unitOfWork, IMapper mapper, FileUploadService fileUploadService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _env = env;
+            _fileUploadService = fileUploadService;
+
         }
 
-        // ================== GET ALL ==================
-        //[HttpGet]
-        //[Authorize(Policy = PermissionConstants.Products.View)]
-        //public async Task<IActionResult> GetAll()
-        //{
-        //    var products = await _unitOfWork.ProductRepository
-        //        .Query()
-        //        .Include(p => p.Category)
-        //        .Include(p => p.Images)
-        //        .ToListAsync();
-
-        //    var dtos = products.Select(p => new ProductDto
-        //    {
-        //        Id = p.Id,
-        //        Name = p.Name,
-        //        Description = p.Description,
-        //        Price = p.Price,
-        //        Stock = p.Stock ,
-        //        CategoryName = p.Category?.Name ?? string.Empty,
-        //        ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
-        //    });
-
-        //    return Ok(ApiResponse<IEnumerable<ProductDto>>.SuccessResponse(dtos, "Lấy danh sách sản phẩm thành công"));
-        //}
-
-        // ================== GET BY ID ==================
+        //lấy chi tiết sản phẩm theo Id
         [HttpGet("{id}")]
         [Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> GetById(int id)
@@ -72,18 +49,20 @@ namespace BE__Small_Shop_Management_System.Controllers
                 Name = product.Name,
                 Description = product.Description,
                 Price = product.Price,
-                Stock = product.Stock ,
+                Stock = product.Stock,
                 CategoryName = product.Category?.Name ?? string.Empty,
-                ImageUrls = product.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
+                ImageUrls = product.Images?
+                .Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}")
+                .ToList() ?? new List<string>()
             };
 
             return Ok(ApiResponse<ProductDto>.SuccessResponse(dto, "Lấy chi tiết sản phẩm thành công"));
         }
-
-        // ================== PAGED ==================
+        // phân trang sản phẩm
         [HttpGet("paged")]
-        //[Authorize(Policy = PermissionConstants.Products.View)]
+        // [Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> GetPaged(
+             [FromQuery] string? categoryName,
              [FromQuery] decimal? minPrice,
              [FromQuery] decimal? maxPrice,
              [FromQuery] int pageNumber = 1,
@@ -98,8 +77,17 @@ namespace BE__Small_Shop_Management_System.Controllers
                     .Where(p => p.IsActive)
                     .AsQueryable();
 
-                if (minPrice.HasValue) query = query.Where(p => p.Price >= minPrice.Value);
-                if (maxPrice.HasValue) query = query.Where(p => p.Price <= maxPrice.Value);
+                if (!string.IsNullOrWhiteSpace(categoryName))
+                {
+                    query = query.Where(p => p.Category != null &&
+                                             p.Category.Name.ToLower().Contains(categoryName.ToLower()));
+                }
+
+                if (minPrice.HasValue)
+                    query = query.Where(p => p.Price >= minPrice.Value);
+
+                if (maxPrice.HasValue)
+                    query = query.Where(p => p.Price <= maxPrice.Value);
 
                 var totalItems = await query.CountAsync();
 
@@ -109,17 +97,20 @@ namespace BE__Small_Shop_Management_System.Controllers
                     .Take(pageSize)
                     .ToListAsync();
 
-                var itemDtos = items.Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Stock = p.Stock,
-                    IsActive = p.IsActive,
-                    CategoryName = p.Category?.Name ?? string.Empty,
-                    ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
-                }).ToList();
+                var itemDtos = items
+                    .Select(p => new ProductDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        Stock = p.Stock,
+                        IsActive = p.IsActive,
+                        CategoryName = p.Category?.Name ?? string.Empty,
+                        ImageUrls = p.Images?
+                        .Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}")
+                        .ToList() ?? new List<string>()
+                    }).ToList();
 
                 var result = new PagedResult<ProductDto>
                 {
@@ -138,9 +129,9 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // ================== SEARCH ==================
+        //tìm kiếm sản phẩm
         [HttpGet("search")]
-        //[Authorize(Policy = PermissionConstants.Products.View)]
+        [Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> Search(
             [FromQuery] string keyword,
             [FromQuery] int pageNumber = 1,
@@ -148,8 +139,8 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(keyword))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Từ khóa là bắt buộc", null, 400));
+                if(string .IsNullOrEmpty(keyword))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Từ khóa tìm kiếm không được để trống", null, 400));
 
                 var lower = keyword.Trim().ToLower();
 
@@ -175,16 +166,20 @@ namespace BE__Small_Shop_Management_System.Controllers
                     .Take(pageSize)
                     .ToListAsync();
 
-                var itemDtos = items.Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Stock = p.Stock ,
-                    CategoryName = p.Category?.Name ?? string.Empty,
-                    ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
-                }).ToList();
+                var itemDtos = items
+                 .Select(p => new ProductDto
+                 {
+                     Id = p.Id,
+                     Name = p.Name,
+                     Description = p.Description,
+                     Price = p.Price,
+                     Stock = p.Stock,
+                     IsActive = p.IsActive,
+                     CategoryName = p.Category?.Name ?? string.Empty,
+                     Image = p.Images != null && p.Images.Any()
+                        ? $"{Request.Scheme}://{Request.Host}{p.Images.First().ImageUrl}"
+                        : null,
+                 }).ToList();
 
                 var result = new PagedResult<ProductDto>
                 {
@@ -203,7 +198,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // ================== CREATE ==================
+        //thêm mới sản phẩm
         [HttpPost]
         [Authorize(Policy = PermissionConstants.Products.Create)]
         public async Task<IActionResult> Create([FromForm] ProductCreateUpdateDto dto)
@@ -222,26 +217,9 @@ namespace BE__Small_Shop_Management_System.Controllers
             product.CategoryId = category.Id;
             product.Images = new List<ProductImage>();
 
-            // upload files nếu có
-            if (dto.Files != null && dto.Files.Any())
-            {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "products");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
+            var imageUrls = await _fileUploadService.UploadImagesAsync(dto.Files, "products");
 
-                foreach (var file in dto.Files)
-                {
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    var savePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (var stream = new FileStream(savePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-
-                    product.Images.Add(new ProductImage { ImageUrl = $"/images/products/{fileName}" });
-                }
-            }
+            product.Images = imageUrls.Select(url => new ProductImage { ImageUrl = url }).ToList();
 
             await _unitOfWork.ProductRepository.AddAsync(product);
             await _unitOfWork.CompleteAsync();
@@ -254,13 +232,15 @@ namespace BE__Small_Shop_Management_System.Controllers
                 Price = product.Price,
                 Stock = product.Stock,
                 CategoryName = category.Name,
-                ImageUrls = product.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
+                ImageUrls = product.Images?
+                .Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}")
+                .ToList() ?? new List<string>()
             };
 
             return Ok(ApiResponse<ProductDto>.SuccessResponse(resultDto, "Tạo sản phẩm thành công"));
         }
 
-        // ================== UPDATE ==================
+        //cập nhật sản phẩm
         [HttpPut("{id}")]
         [Authorize(Policy = PermissionConstants.Products.Update)]
         public async Task<IActionResult> Update(int id, [FromForm] ProductCreateUpdateDto dto)
@@ -287,46 +267,11 @@ namespace BE__Small_Shop_Management_System.Controllers
             _mapper.Map(dto, product);
             product.CategoryId = category.Id;
 
-            // Thư mục lưu ảnh
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "products");
-            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+            var imageUrls = await _fileUploadService.UploadImagesAsync(dto.Files, "products");
 
-            // ================== XÓA ẢNH CŨ ==================
-            if (dto.DeletedImageIds != null && dto.DeletedImageIds.Any())
-            {
-                var toDelete = product.Images
-                    .Where(i => dto.DeletedImageIds.Contains(i.Id))
-                    .ToList();
+            product.Images = imageUrls.Select(url => new ProductImage { ImageUrl = url }).ToList();
 
-                foreach (var img in toDelete)
-                {
-                    var oldPath = Path.Combine(_env.WebRootPath, img.ImageUrl.TrimStart('/')
-                        .Replace("/", Path.DirectorySeparatorChar.ToString()));
 
-                    if (System.IO.File.Exists(oldPath))
-                        System.IO.File.Delete(oldPath);
-
-                    product.Images.Remove(img);
-                }
-            }
-
-            // ================== THÊM ẢNH MỚI ==================
-            if (dto.Files != null && dto.Files.Any())
-            {
-                foreach (var file in dto.Files)
-                {
-                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                    var savePath = Path.Combine(uploadsFolder, fileName);
-
-                    using var stream = new FileStream(savePath, FileMode.Create);
-                    await file.CopyToAsync(stream);
-
-                    product.Images.Add(new ProductImage
-                    {
-                        ImageUrl = $"/images/products/{fileName}"
-                    });
-                }
-            }
 
             await _unitOfWork.CompleteAsync();
 
@@ -346,7 +291,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(ApiResponse<ProductDto>.SuccessResponse(resultDto, "Cập nhật sản phẩm thành công"));
         }
-        // ================== GET FEATURED PRODUCTS ==================
+        //trả về sản phẩm nổi bật
         [HttpGet("featured")]
         //[Authorize(Policy = PermissionConstants.Products.View)] //
         public async Task<IActionResult> GetFeaturedProducts()
@@ -357,9 +302,9 @@ namespace BE__Small_Shop_Management_System.Controllers
                     .Query()
                     .Include(p => p.Category)
                     .Include(p => p.Images)
-                    .Where(p => p.IsActive && p.IsFeatured) // chỉ lấy sản phẩm đang hoạt động & nổi bật
+                    .Where(p => p.IsActive && p.IsFeatured) 
                     .OrderByDescending(p => p.Id)
-                    .Take(8) 
+                    .Take(8)
                     .ToListAsync();
 
                 if (!featuredProducts.Any())
@@ -411,7 +356,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         //    return Ok(ApiResponse<string>.SuccessResponse("Xóa sản phẩm thành công"));  
 
         //}
-        // ================== DEACTIVATE PRODUCT ==================
+        //khóa sản phẩm
         [HttpPut("{id}/deactivate")]
         [Authorize(Policy = PermissionConstants.Products.Update)]
         public async Task<IActionResult> DeactivateProduct(int id)
@@ -429,7 +374,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             return Ok(ApiResponse<string>.SuccessResponse("Ngừng hoạt động sản phẩm thành công"));
         }
 
-        // ================== ACTIVATE PRODUCT ==================
+        //mỏ khóa sản phẩm
         [HttpPut("{id}/activate")]
         [Authorize(Policy = PermissionConstants.Products.Update)]
         public async Task<IActionResult> ActivateProduct(int id)
@@ -446,56 +391,56 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(ApiResponse<string>.SuccessResponse("Kích hoạt sản phẩm thành công"));
         }
-        // ================== GET ALL LOCKED PRODUCTS ==================
-        [HttpGet("locked")]
-        [Authorize(Policy = PermissionConstants.Products.View)]
-        public async Task<IActionResult> GetLockedProducts(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            try
-            {
-                var query = _unitOfWork.ProductRepository
-                    .Query()
-                    .Include(p => p.Category)
-                    .Include(p => p.Images)
-                    .Where(p => !p.IsActive); //  chỉ lấy product đang bị khóa
+        ////lấy danh sách sản phẩm bị khóa
+        //[HttpGet("locked")]
+        //[Authorize(Policy = PermissionConstants.Products.View)]
+        //public async Task<IActionResult> GetLockedProducts(
+        //    [FromQuery] int pageNumber = 1,
+        //    [FromQuery] int pageSize = 10)
+        //{
+        //    try
+        //    {
+        //        var query = _unitOfWork.ProductRepository
+        //            .Query()
+        //            .Include(p => p.Category)
+        //            .Include(p => p.Images)
+        //            .Where(p => !p.IsActive);
 
-                var totalItems = await query.CountAsync();
+        //        var totalItems = await query.CountAsync();
 
-                var items = await query
-                    .OrderByDescending(p => p.Id)
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
+        //        var items = await query
+        //            .OrderByDescending(p => p.Id)
+        //            .Skip((pageNumber - 1) * pageSize)
+        //            .Take(pageSize)
+        //            .ToListAsync();
 
-                var itemDtos = items.Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Stock = p.Stock,
-                    CategoryName = p.Category?.Name ?? string.Empty,
-                    ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
-                }).ToList();
+        //        var itemDtos = items.Select(p => new ProductDto
+        //        {
+        //            Id = p.Id,
+        //            Name = p.Name,
+        //            Description = p.Description,
+        //            Price = p.Price,
+        //            Stock = p.Stock,
+        //            CategoryName = p.Category?.Name ?? string.Empty,
+        //            ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
+        //        }).ToList();
 
-                var result = new PagedResult<ProductDto>
-                {
-                    TotalItems = totalItems,
-                    TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    Items = itemDtos
-                };
+        //        var result = new PagedResult<ProductDto>
+        //        {
+        //            TotalItems = totalItems,
+        //            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+        //            PageNumber = pageNumber,
+        //            PageSize = pageSize,
+        //            Items = itemDtos
+        //        };
 
-                return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(result, "Lấy danh sách sản phẩm bị khóa thành công"));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy sản phẩm bị khóa", new[] { ex.Message }, 500));
-            }
-        }
+        //        return Ok(ApiResponse<PagedResult<ProductDto>>.SuccessResponse(result, "Lấy danh sách sản phẩm bị khóa thành công"));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy sản phẩm bị khóa", new[] { ex.Message }, 500));
+        //    }
+        //}
 
     }
 

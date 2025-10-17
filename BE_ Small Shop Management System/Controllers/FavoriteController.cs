@@ -49,7 +49,9 @@ namespace BE__Small_Shop_Management_System.Controllers
                         Description = f.Product.Description,
                         Price = f.Product.Price,
                         Stock = f.Product.Stock,
-                        ImageUrls = f.Product.Images.Select(img => $"{baseUrl}{img.ImageUrl}").ToList(),
+                        ImageUrls = f.Product.Images
+                        .Select(img => $"{baseUrl}{img.ImageUrl}")
+                        .ToList(),
                         CategoryName = f.Product.Category != null ? f.Product.Category.Name : ""
                     }
                 }).ToList();

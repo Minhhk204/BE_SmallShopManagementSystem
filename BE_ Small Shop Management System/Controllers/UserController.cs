@@ -150,21 +150,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // ================== GET ALL ==================
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            try
-            {
-                var users = await _unitOfWork.UserRepository.GetAllWithRolesAsync();
-                var result = users.Select(u => MapToDto(u));
-                return Ok(ApiResponse<object>.SuccessResponse(result, "Lấy danh sách người dùng thành công"));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy danh sách người dùng", new[] { ex.Message }, 500));
-            }
-        }
+      
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -182,7 +168,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // ================== PAGING ==================
         [HttpGet("paged")]
         public async Task<IActionResult> GetPaged(
             [FromQuery] bool? isActive,
@@ -243,7 +228,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // ================== SEARCH ==================
+       
         [HttpGet("search")]
         [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> Search(
@@ -304,7 +289,6 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
 
-        // ================== CREATE USER BY ADMIN ==================
         [HttpPost]
         [Authorize(Policy = PermissionConstants.Users.Create)] 
         public async Task<IActionResult> Create([FromBody] UserDto dto)

@@ -6,4 +6,8 @@
         public string Name { get; set; } = null!;
         public int UserCount { get; set; }
     }
+    public class CreateRoleDto
+    {
+        public string Name { get; set; } = string.Empty;
+    }
 }
