@@ -22,7 +22,7 @@ namespace BE__Small_Shop_Management_System.Services
             var policy = await _context.PasswordPolicies.FirstOrDefaultAsync();
             if (policy == null)
             {
-                policy = new PasswordPolicy(); // default
+                policy = new PasswordPolicy(); 
                 _context.PasswordPolicies.Add(policy);
                 await _context.SaveChangesAsync();
             }

@@ -22,28 +22,6 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<SystemLogDto>>> GetAll()
-        {
-            var logs = await _unitOfWork.SystemLogRepository.GetAllAsync();
-
-            var result = logs.Select(l => new SystemLogDto
-            {
-                Id = l.Id,
-                UserName = l.User?.Username,
-                Method = l.Method,
-                Path = l.Path,
-                StatusCode = l.StatusCode,
-                Action = l.Action,
-                CreatedAt = l.CreatedAt,
-                Duration = l.Duration,
-                ApplicationName = l.ApplicationName,
-                Data = l.Data
-            });
-
-            return Ok(result);
-        }
 
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin")]
@@ -76,31 +54,26 @@ namespace BE__Small_Shop_Management_System.Controllers
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
-            var query = _unitOfWork.SystemLogRepository.Query();
+            var query = _unitOfWork.SystemLogRepository.Query().AsNoTracking();
 
-            //Lọc UserName
             if (!string.IsNullOrEmpty(filter.UserName))
                 query = query.Where(l => l.User != null && l.User.Username.Contains(filter.UserName));
 
-            //Lọc Action
             if (!string.IsNullOrEmpty(filter.Action))
                 query = query.Where(l => l.Action.Contains(filter.Action));
 
-            //Lọc Method
             if (!string.IsNullOrEmpty(filter.Method))
                 query = query.Where(l => l.Method == filter.Method);
 
-            //Lọc StatusCode
             if (filter.StatusCode.HasValue)
                 query = query.Where(l => l.StatusCode == filter.StatusCode.Value);
-            //Lọc khoảng thời gian
+
             if (filter.FromDate.HasValue)
                 query = query.Where(l => l.CreatedAt >= filter.FromDate.Value);
 
             if (filter.ToDate.HasValue)
                 query = query.Where(l => l.CreatedAt <= filter.ToDate.Value);
 
-            //Lọc Duration
             if (filter.MinDuration.HasValue)
                 query = query.Where(l => l.Duration >= filter.MinDuration.Value);
 
@@ -113,6 +86,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                 .OrderByDescending(l => l.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
+                .AsNoTracking()
                 .ToListAsync();
 
             var result = new PagedResult<SystemLogDto>
@@ -129,7 +103,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Duration = l.Duration,
                     ApplicationName = l.ApplicationName,
                     Data = l.Data
-                }),
+                }).ToList(),
                 TotalCount = totalCount,
                 PageNumber = pageNumber,
                 PageSize = pageSize
@@ -137,49 +111,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             return Ok(result);
         }
-        [HttpDelete("xóa 1 hoặc nhiều theo id")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteRange([FromBody] List<int> ids)
-        {
-            var logs = await _unitOfWork.SystemLogRepository.FindAsync(l => ids.Contains(l.Id));
-            if (!logs.Any())
-                return NotFound("Không tìm thấy log nào để xóa");
-
-            _unitOfWork.SystemLogRepository.DeleteRange(logs);
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(new { message = $"Đã xóa {logs.Count()} log" });
-        }
-
-
-
-        [HttpDelete("clear-all")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ClearAll()
-        {
-            var logs = await _unitOfWork.SystemLogRepository.GetAllAsync();
-            _unitOfWork.SystemLogRepository.DeleteRange(logs);
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(new { message = "Đã xóa toàn bộ logs" });
-        }
-
-
-        [HttpDelete("clear-old")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ClearOldLogs([FromQuery] int days = 30)
-        {
-            var cutoffDate = DateTime.UtcNow.AddDays(-days);
-
-            var oldLogs = await _unitOfWork.SystemLogRepository.FindAsync(l => l.CreatedAt < cutoffDate);
-            if (!oldLogs.Any())
-                return NotFound($"Không có log nào cũ hơn {days} ngày để xóa");
-
-            _unitOfWork.SystemLogRepository.DeleteRange(oldLogs);
-            await _unitOfWork.CompleteAsync();
-
-            return Ok(new { message = $"Đã xóa {oldLogs.Count()} log cũ hơn {days} ngày" });
-        }
+        
 
 
     }

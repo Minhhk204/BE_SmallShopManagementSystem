@@ -103,7 +103,8 @@ namespace BE__Small_Shop_Management_System
                 {
                     policy.WithOrigins("http://localhost:4200") // Angular dev server
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod()
+                          .AllowCredentials();
                 });
             });
 

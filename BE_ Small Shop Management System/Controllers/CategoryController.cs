@@ -160,12 +160,12 @@ namespace BE__Small_Shop_Management_System.Controllers
                 {
                     foreach (var product in products)
                     {
-                        product.CategoryId = null; // bỏ liên kết category
+                        product.CategoryId = null; 
                         _unitOfWork.ProductRepository.Update(product);
                     }
                 }
 
-                // Xóa category
+               
                 _unitOfWork.CategoryRepository.Delete(category);
 
                 await _unitOfWork.CompleteAsync();
