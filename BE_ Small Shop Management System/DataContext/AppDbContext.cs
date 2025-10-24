@@ -146,7 +146,7 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // ==== DECIMAL precision fix ====
+            // ==== DECIMAL precision fix ==== 
             modelBuilder.Entity<Product>()
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)");
