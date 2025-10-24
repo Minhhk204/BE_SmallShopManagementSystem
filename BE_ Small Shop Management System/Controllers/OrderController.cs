@@ -105,5 +105,50 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi server", new[] { ex.Message }, 500));
             }
         }
+
+        // Cập nhật trạng thái đơn hàng 
+        [HttpPut("{orderId}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
+        {
+            try
+            {
+                var order = await _unitOfWork.OrderRepository
+                    .GetAsync(o => o.Id == orderId, includeProperties: "User,OrderItems");
+
+                if (order == null)
+                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy đơn hàng."));
+
+                // Danh sách trạng thái hợp lệ
+                var validStatuses = new[] { "Pending", "Processing", "Completed", "Cancelled" };
+                if (!validStatuses.Contains(newStatus))
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Trạng thái không hợp lệ."));
+
+                // Quy tắc chuyển trạng thái
+                bool canChange = (order.Status, newStatus) switch
+                {
+                    ("Pending", "Processing") => true,
+                    ("Processing", "Completed") => true,
+                    ("Pending", "Cancelled") => true,
+                    ("Processing", "Cancelled") => true,
+                    _ => false
+                };
+
+                if (!canChange)
+                    return BadRequest(ApiResponse<string>.ErrorResponse($"Không thể chuyển từ {order.Status} sang {newStatus}."));
+
+                // Cập nhật trạng thái
+                order.Status = newStatus;
+                await _unitOfWork.CompleteAsync();
+
+                var orderDto = await _unitOfWork.OrderRepository.GetOrderWithItemsAsync(order.Id);
+
+                return Ok(ApiResponse<OrderDto>.SuccessResponse(orderDto, $"Cập nhật trạng thái đơn hàng #{order.Id} thành công."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
+            }
+        }
+
     }
 }

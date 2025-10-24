@@ -74,6 +74,9 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (product == null)
                     return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy sản phẩm"));
 
+                if (!product.IsActive)
+                    return BadRequest(ApiResponse<string>.ErrorResponse("Sản phẩm này hiện đang ngừng kinh doanh, không thể thêm vào giỏ hàng"));
+
                 if (product.Stock == 0)
                     return BadRequest(ApiResponse<string>.ErrorResponse("Sản phẩm đã hết hàng, không thể thêm vào giỏ"));
 

@@ -106,7 +106,6 @@ namespace BE__Small_Shop_Management_System
                           .AllowAnyMethod();
                 });
             });
-
             builder.Services.AddSwaggerGen();
             var app = builder.Build();
             app.UseStaticFiles();// cho phep truy cap file tinh

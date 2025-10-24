@@ -16,7 +16,8 @@
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<CartItem>? CartItems { get; set; }
-       
+
+        public ICollection<InventoryHistory> InventoryHistories { get; set; } = new List<InventoryHistory>();
 
     }
 }

@@ -25,5 +25,7 @@
 
         public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
+
+        public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 }

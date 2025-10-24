@@ -20,6 +20,9 @@ namespace BE__Small_Shop_Management_System.UnitOfWork
         IOrderRepository OrderRepository { get; }
         IOrderItemRepository OrderItemRepository { get; }
         ICategoryRepository CategoryRepository { get; }
+
+        IInventoryHistoryRepository InventoryHistoryRepository { get; }
+
         Task<int> CompleteAsync();
     }
 }

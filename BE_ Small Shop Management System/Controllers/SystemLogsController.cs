@@ -74,7 +74,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPaged([FromQuery] SystemLogFilterRequest filter,
             [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 20)
         {
             var query = _unitOfWork.SystemLogRepository.Query();
 

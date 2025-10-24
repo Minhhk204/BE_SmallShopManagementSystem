@@ -9,6 +9,7 @@
         public int? Stock { get; set; }
         public string? CategoryName { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool IsFeatured { get; set; } = false;
         public List<string> ImageUrls { get; set; } = new();
     }
 

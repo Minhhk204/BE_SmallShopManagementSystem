@@ -262,6 +262,17 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (role == null)
                     return NotFound(ApiResponse<object>.ErrorResponse("Không tìm thấy vai trò", null, 404));
 
+                // Chặn xóa 3 vai trò mặc định của hệ thống
+                var fixedRoles = new[] { "Admin", "Seller", "Customer" };
+                if (fixedRoles.Contains(role.Name))
+                {
+                    return BadRequest(ApiResponse<object>.ErrorResponse(
+                        $"Không thể xóa vai trò mặc định của hệ thống: {role.Name}",
+                        null,
+                        400
+                    ));
+                }
+
                 _unitOfWork.RoleRepository.Delete(role);
                 await _unitOfWork.CompleteAsync();
 
@@ -272,5 +283,6 @@ namespace BE__Small_Shop_Management_System.Controllers
                 return StatusCode(500, ApiResponse<object>.ErrorResponse("Lỗi khi xóa vai trò", new[] { ex.Message }, 500));
             }
         }
+
     }
 }

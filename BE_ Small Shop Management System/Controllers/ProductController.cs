@@ -117,6 +117,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Price = p.Price,
                     Stock = p.Stock,
                     IsActive = p.IsActive,
+                    IsFeatured = p.IsFeatured,
                     CategoryName = p.Category?.Name ?? string.Empty,
                     ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
                 }).ToList();
@@ -182,6 +183,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Description = p.Description,
                     Price = p.Price,
                     Stock = p.Stock ,
+                    IsActive = p.IsActive,
                     CategoryName = p.Category?.Name ?? string.Empty,
                     ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
                 }).ToList();
@@ -477,6 +479,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     Price = p.Price,
                     Stock = p.Stock,
                     CategoryName = p.Category?.Name ?? string.Empty,
+                    IsActive = p.IsActive,
                     ImageUrls = p.Images?.Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}").ToList() ?? new List<string>()
                 }).ToList();
 

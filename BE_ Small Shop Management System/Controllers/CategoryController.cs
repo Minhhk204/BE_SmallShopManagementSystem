@@ -138,46 +138,72 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
+        [HttpGet("{id}/check-products")]
+        public async Task<IActionResult> CheckProducts(int id)
+        {
+            if (id <= 0)
+                return BadRequest(ApiResponse<string>.ErrorResponse("Id không hợp lệ"));
+
+            var category = await _unitOfWork.CategoryRepository.GetByIdAsync(id);
+            if (category == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy danh mục"));
+
+            var products = await _unitOfWork.ProductRepository.FindAsync(p => p.CategoryId == id);
+            bool hasProducts = products.Any();
+            return Ok(ApiResponse<object>.SuccessResponse(new { hasProducts, productCount = products.Count() }));
+        }
+
+        [HttpPost("move-products")]
+        public async Task<IActionResult> MoveProducts([FromBody] MoveProductsDto dto)
+        {
+            if (dto.FromCategoryId <= 0 || dto.ToCategoryId <= 0)
+                return BadRequest(ApiResponse<string>.ErrorResponse("CategoryId không hợp lệ"));
+
+            var fromCategory = await _unitOfWork.CategoryRepository.GetByIdAsync(dto.FromCategoryId);
+            var toCategory = await _unitOfWork.CategoryRepository.GetByIdAsync(dto.ToCategoryId);
+
+            if (fromCategory == null || toCategory == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy category"));
+
+            var products = await _unitOfWork.ProductRepository.FindAsync(p => p.CategoryId == dto.FromCategoryId);
+            foreach (var p in products)
+            {
+                p.CategoryId = dto.ToCategoryId;
+                _unitOfWork.ProductRepository.Update(p);
+            }
+            await _unitOfWork.CompleteAsync();
+
+            return Ok(ApiResponse<string>.SuccessResponse("Chuyển sản phẩm thành công", "OK"));
+        }
+
+        public class MoveProductsDto
+        {
+            public int FromCategoryId { get; set; }
+            public int ToCategoryId { get; set; }
+        }
+
 
         //Xóa category
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            try
-            {
-                if (id <= 0)
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Id không hợp lệ"));
+            if (id <= 0)
+                return BadRequest(ApiResponse<string>.ErrorResponse("Id không hợp lệ"));
 
-                var category = await _unitOfWork.CategoryRepository.GetByIdAsync(id);
-                if (category == null)
-                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy danh mục"));
+            var category = await _unitOfWork.CategoryRepository.GetByIdAsync(id);
+            if (category == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy danh mục"));
 
-                // Lấy danh sách sản phẩm thuộc category này
-                var products = await _unitOfWork.ProductRepository
-                    .FindAsync(p => p.CategoryId == id);
+            var products = await _unitOfWork.ProductRepository.FindAsync(p => p.CategoryId == id);
+            if (products.Any())
+                return BadRequest(ApiResponse<string>.ErrorResponse("Danh mục này vẫn còn sản phẩm. Vui lòng chuyển sản phẩm sang danh mục khác trước khi xóa."));
 
-                if (products.Any())
-                {
-                    foreach (var product in products)
-                    {
-                        product.CategoryId = null; // bỏ liên kết category
-                        _unitOfWork.ProductRepository.Update(product);
-                    }
-                }
+            _unitOfWork.CategoryRepository.Delete(category);
+            await _unitOfWork.CompleteAsync();
 
-                // Xóa category
-                _unitOfWork.CategoryRepository.Delete(category);
-
-                await _unitOfWork.CompleteAsync();
-
-                return Ok(ApiResponse<string>.SuccessResponse("Xóa danh mục thành công và các sản phẩm đã được gỡ khỏi danh mục", "OK"));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500,
-                    ApiResponse<string>.ErrorResponse("Lỗi server", new[] { ex.Message }, 500));
-            }
+            return Ok(ApiResponse<string>.SuccessResponse("Xóa danh mục thành công", "OK"));
         }
+
 
     }
 

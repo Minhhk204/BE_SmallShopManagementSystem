@@ -4,6 +4,7 @@ using BE__Small_Shop_Management_System.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE__Small_Shop_Management_System.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251024034330_UpdatePermissions")]
+    partial class UpdatePermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,6 +36,9 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ProductId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -42,6 +48,8 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductId1");
 
                     b.HasIndex("UserId");
 
@@ -272,7 +280,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7226),
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5426),
                             Description = "Xem danh sách người dùng",
                             Module = "Người dùng",
                             Name = "Users.View"
@@ -280,7 +288,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7268),
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5463),
                             Description = "Tạo mới người dùng",
                             Module = "Người dùng",
                             Name = "Users.Create"
@@ -288,7 +296,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7275),
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5470),
                             Description = "Cập nhật thông tin người dùng",
                             Module = "Người dùng",
                             Name = "Users.Update"
@@ -296,7 +304,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7281),
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5476),
                             Description = "Xóa người dùng",
                             Module = "Người dùng",
                             Name = "Users.Delete"
@@ -304,7 +312,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7286),
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5484),
                             Description = "Khóa tài khoản người dùng",
                             Module = "Người dùng",
                             Name = "Users.Lock"
@@ -312,7 +320,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7292),
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5491),
                             Description = "Mở khóa tài khoản người dùng",
                             Module = "Người dùng",
                             Name = "Users.Unlock"
@@ -320,394 +328,146 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7323),
-                            Description = "Users ResetPassword",
-                            Module = "Người dùng",
-                            Name = "Users.ResetPassword"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7349),
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5502),
                             Description = "Xem danh sách vai trò",
                             Module = "Vai trò",
                             Name = "Roles.View"
                         },
                         new
                         {
-                            Id = 9,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7355),
+                            Id = 8,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5507),
                             Description = "Tạo mới vai trò",
                             Module = "Vai trò",
                             Name = "Roles.Create"
                         },
                         new
                         {
-                            Id = 10,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7361),
+                            Id = 9,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5515),
                             Description = "Cập nhật vai trò",
                             Module = "Vai trò",
                             Name = "Roles.Update"
                         },
                         new
                         {
-                            Id = 11,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7367),
+                            Id = 10,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5521),
                             Description = "Xóa vai trò",
                             Module = "Vai trò",
                             Name = "Roles.Delete"
                         },
                         new
                         {
-                            Id = 12,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7376),
+                            Id = 11,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5530),
                             Description = "Xem danh sách quyền",
                             Module = "Quyền",
                             Name = "Permissions.View"
                         },
                         new
                         {
-                            Id = 13,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7382),
-                            Description = "Permissions Create",
-                            Module = "Quyền",
-                            Name = "Permissions.Create"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7387),
-                            Description = "Permissions Update",
-                            Module = "Quyền",
-                            Name = "Permissions.Update"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7396),
-                            Description = "Xóa quyền",
+                            Id = 12,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5538),
+                            Description = "Permissions Delete",
                             Module = "Quyền",
                             Name = "Permissions.Delete"
                         },
                         new
                         {
-                            Id = 16,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7420),
+                            Id = 13,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5561),
                             Description = "Xem danh sách sản phẩm",
                             Module = "Sản phẩm",
                             Name = "Products.View"
                         },
                         new
                         {
-                            Id = 17,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7427),
+                            Id = 14,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5568),
                             Description = "Thêm mới sản phẩm",
                             Module = "Sản phẩm",
                             Name = "Products.Create"
                         },
                         new
                         {
-                            Id = 18,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7432),
+                            Id = 15,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5576),
                             Description = "Cập nhật sản phẩm",
                             Module = "Sản phẩm",
                             Name = "Products.Update"
                         },
                         new
                         {
-                            Id = 19,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7438),
+                            Id = 16,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5614),
                             Description = "Xóa sản phẩm",
                             Module = "Sản phẩm",
                             Name = "Products.Delete"
                         },
                         new
                         {
-                            Id = 20,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7443),
-                            Description = "Products Import",
-                            Module = "Sản phẩm",
-                            Name = "Products.Import"
-                        },
-                        new
-                        {
-                            Id = 21,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7451),
-                            Description = "Products Export",
-                            Module = "Sản phẩm",
-                            Name = "Products.Export"
-                        },
-                        new
-                        {
-                            Id = 22,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7462),
+                            Id = 17,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5624),
                             Description = "Xem danh sách đơn hàng",
                             Module = "Đơn hàng",
                             Name = "Orders.View"
                         },
                         new
                         {
-                            Id = 23,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7467),
+                            Id = 18,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5635),
                             Description = "Tạo mới đơn hàng",
                             Module = "Đơn hàng",
                             Name = "Orders.Create"
                         },
                         new
                         {
-                            Id = 24,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7472),
+                            Id = 19,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5640),
                             Description = "Cập nhật đơn hàng",
                             Module = "Đơn hàng",
                             Name = "Orders.Update"
                         },
                         new
                         {
-                            Id = 25,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7476),
-                            Description = "Xóa đơn hàng",
+                            Id = 20,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5645),
+                            Description = "Orders Delete",
                             Module = "Đơn hàng",
                             Name = "Orders.Delete"
                         },
                         new
                         {
-                            Id = 26,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7506),
+                            Id = 21,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5652),
                             Description = "Xử lý đơn hàng",
                             Module = "Đơn hàng",
                             Name = "Orders.Process"
                         },
                         new
                         {
-                            Id = 27,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7516),
-                            Description = "Orders Cancel",
-                            Module = "Đơn hàng",
-                            Name = "Orders.Cancel"
-                        },
-                        new
-                        {
-                            Id = 28,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7527),
-                            Description = "Xem kho hàng",
+                            Id = 22,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5659),
+                            Description = "Inventory View",
                             Module = "Kho",
                             Name = "Inventory.View"
                         },
                         new
                         {
-                            Id = 29,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7532),
-                            Description = "Nhập hàng vào kho",
+                            Id = 23,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5667),
+                            Description = "Inventory Import",
                             Module = "Kho",
                             Name = "Inventory.Import"
                         },
                         new
                         {
-                            Id = 30,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7549),
-                            Description = "Inventory Export",
-                            Module = "Kho",
-                            Name = "Inventory.Export"
-                        },
-                        new
-                        {
-                            Id = 31,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7557),
-                            Description = "Inventory Update",
-                            Module = "Kho",
-                            Name = "Inventory.Update"
-                        },
-                        new
-                        {
-                            Id = 32,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7564),
-                            Description = "Reports View",
+                            Id = 24,
+                            CreatedAt = new DateTime(2025, 10, 24, 3, 43, 30, 250, DateTimeKind.Utc).AddTicks(5675),
+                            Description = "Reports ViewDashboard",
                             Module = "Báo cáo",
-                            Name = "Reports.View"
-                        },
-                        new
-                        {
-                            Id = 33,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7570),
-                            Description = "Reports Generate",
-                            Module = "Báo cáo",
-                            Name = "Reports.Generate"
-                        },
-                        new
-                        {
-                            Id = 34,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7576),
-                            Description = "Reports Export",
-                            Module = "Báo cáo",
-                            Name = "Reports.Export"
-                        },
-                        new
-                        {
-                            Id = 35,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7587),
-                            Description = "Xem danh mục sản phẩm",
-                            Module = "Danh mục",
-                            Name = "Categories.View"
-                        },
-                        new
-                        {
-                            Id = 36,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7593),
-                            Description = "Tạo mới danh mục",
-                            Module = "Danh mục",
-                            Name = "Categories.Create"
-                        },
-                        new
-                        {
-                            Id = 37,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7597),
-                            Description = "Cập nhật danh mục",
-                            Module = "Danh mục",
-                            Name = "Categories.Update"
-                        },
-                        new
-                        {
-                            Id = 38,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7604),
-                            Description = "Xóa danh mục",
-                            Module = "Danh mục",
-                            Name = "Categories.Delete"
-                        },
-                        new
-                        {
-                            Id = 39,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7611),
-                            Description = "Xem nhật ký hệ thống",
-                            Module = "Nhật ký hệ thống",
-                            Name = "SystemLogs.View"
-                        },
-                        new
-                        {
-                            Id = 40,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7616),
-                            Description = "Xóa nhật ký hệ thống",
-                            Module = "Nhật ký hệ thống",
-                            Name = "SystemLogs.Delete"
-                        },
-                        new
-                        {
-                            Id = 41,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7622),
-                            Description = "Xem trang tổng quan",
-                            Module = "Tổng quan",
-                            Name = "Dashboard.View"
-                        },
-                        new
-                        {
-                            Id = 42,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7626),
-                            Description = "Dashboard Analyze",
-                            Module = "Tổng quan",
-                            Name = "Dashboard.Analyze"
-                        },
-                        new
-                        {
-                            Id = 43,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7681),
-                            Description = "Xem chính sách mật khẩu",
-                            Module = "Chính sách mật khẩu",
-                            Name = "PasswordPolicy.View"
-                        },
-                        new
-                        {
-                            Id = 44,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7690),
-                            Description = "Cập nhật chính sách mật khẩu",
-                            Module = "Chính sách mật khẩu",
-                            Name = "PasswordPolicy.Update"
-                        },
-                        new
-                        {
-                            Id = 45,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7699),
-                            Description = "Xem giỏ hàng",
-                            Module = "Giỏ hàng",
-                            Name = "Cart.View"
-                        },
-                        new
-                        {
-                            Id = 46,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7704),
-                            Description = "Thêm sản phẩm vào giỏ hàng",
-                            Module = "Giỏ hàng",
-                            Name = "Cart.Add"
-                        },
-                        new
-                        {
-                            Id = 47,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7709),
-                            Description = "Cập nhật giỏ hàng",
-                            Module = "Giỏ hàng",
-                            Name = "Cart.Update"
-                        },
-                        new
-                        {
-                            Id = 48,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7714),
-                            Description = "Xóa sản phẩm khỏi giỏ hàng",
-                            Module = "Giỏ hàng",
-                            Name = "Cart.Delete"
-                        },
-                        new
-                        {
-                            Id = 49,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7722),
-                            Description = "Xem danh sách yêu thích",
-                            Module = "Yêu thích",
-                            Name = "Favorites.View"
-                        },
-                        new
-                        {
-                            Id = 50,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7726),
-                            Description = "Thêm sản phẩm yêu thích",
-                            Module = "Yêu thích",
-                            Name = "Favorites.Add"
-                        },
-                        new
-                        {
-                            Id = 51,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7731),
-                            Description = "Xóa sản phẩm yêu thích",
-                            Module = "Yêu thích",
-                            Name = "Favorites.Delete"
-                        },
-                        new
-                        {
-                            Id = 52,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7738),
-                            Description = "Xem chi tiết sản phẩm trong đơn hàng",
-                            Module = "Chi tiết đơn hàng",
-                            Name = "OrderItems.View"
-                        },
-                        new
-                        {
-                            Id = 53,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7744),
-                            Description = "Xem lịch sử nhập xuất kho",
-                            Module = "Lịch sử kho",
-                            Name = "InventoryHistory.View"
-                        },
-                        new
-                        {
-                            Id = 54,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7749),
-                            Description = "Nhập hàng vào kho",
-                            Module = "Lịch sử kho",
-                            Name = "InventoryHistory.Import"
-                        },
-                        new
-                        {
-                            Id = 55,
-                            CreatedAt = new DateTime(2025, 10, 24, 4, 36, 2, 283, DateTimeKind.Utc).AddTicks(7755),
-                            Description = "InventoryHistory Export",
-                            Module = "Lịch sử kho",
-                            Name = "InventoryHistory.Export"
+                            Name = "Reports.ViewDashboard"
                         });
                 });
 
@@ -966,371 +726,6 @@ namespace BE__Small_Shop_Management_System.Migrations
                         {
                             RoleId = 1,
                             PermissionId = 24
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 25
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 26
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 27
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 28
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 29
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 30
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 31
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 32
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 33
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 34
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 35
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 36
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 37
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 38
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 39
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 40
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 41
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 42
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 43
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 44
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 45
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 46
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 47
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 48
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 49
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 50
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 51
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 52
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 53
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 54
-                        },
-                        new
-                        {
-                            RoleId = 1,
-                            PermissionId = 55
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 16
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 17
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 18
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 19
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 20
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 21
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 22
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 23
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 24
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 25
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 26
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 27
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 28
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 29
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 30
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 31
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 35
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 36
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 37
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 38
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 53
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 54
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 55
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 16
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 17
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 18
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 19
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 20
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 21
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 22
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 23
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 24
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 25
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 26
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 27
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 45
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 46
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 47
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 48
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 49
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 50
-                        },
-                        new
-                        {
-                            RoleId = 3,
-                            PermissionId = 51
                         });
                 });
 
@@ -1437,14 +832,14 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 24, 11, 36, 2, 283, DateTimeKind.Local).AddTicks(8101),
+                            CreatedAt = new DateTime(2025, 10, 24, 10, 43, 30, 250, DateTimeKind.Local).AddTicks(5940),
                             Email = "admin@system.com",
-                            FullName = "Trần Văn Khởi",
+                            FullName = "Nguyen Van Minh",
                             IsActive = true,
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            PasswordHash = "$2a$11$26OigAKWgJw/jcdfeeZV7OeQoBSKk0dwA8fuWWAnUU8H/AsVGzYd6",
-                            PhoneNumber = "0356995423",
+                            PasswordHash = "$2a$11$G3urdjQIVEZ9ZPcozbaVTupwp1pMNp7uBM211Q5YsKl2wGDhavrlW",
+                            PhoneNumber = "0123456789",
                             Username = "admin"
                         });
                 });
@@ -1489,13 +884,17 @@ namespace BE__Small_Shop_Management_System.Migrations
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.CartItem", b =>
                 {
                     b.HasOne("BE__Small_Shop_Management_System.Models.Product", "Product")
-                        .WithMany("CartItems")
+                        .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BE__Small_Shop_Management_System.Models.User", "User")
+                    b.HasOne("BE__Small_Shop_Management_System.Models.Product", null)
                         .WithMany("CartItems")
+                        .HasForeignKey("ProductId1");
+
+                    b.HasOne("BE__Small_Shop_Management_System.Models.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -1527,7 +926,7 @@ namespace BE__Small_Shop_Management_System.Migrations
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.InventoryHistory", b =>
                 {
                     b.HasOne("BE__Small_Shop_Management_System.Models.Product", "Product")
-                        .WithMany("InventoryHistories")
+                        .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -1619,7 +1018,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                     b.HasOne("BE__Small_Shop_Management_System.Models.Role", "Role")
                         .WithMany("RolePermissions")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Permission");
@@ -1702,8 +1101,6 @@ namespace BE__Small_Shop_Management_System.Migrations
 
                     b.Navigation("Images");
 
-                    b.Navigation("InventoryHistories");
-
                     b.Navigation("OrderItems");
                 });
 
@@ -1716,8 +1113,6 @@ namespace BE__Small_Shop_Management_System.Migrations
 
             modelBuilder.Entity("BE__Small_Shop_Management_System.Models.User", b =>
                 {
-                    b.Navigation("CartItems");
-
                     b.Navigation("Favorites");
 
                     b.Navigation("Orders");

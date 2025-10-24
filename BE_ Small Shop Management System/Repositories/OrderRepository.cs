@@ -4,6 +4,7 @@ using BE__Small_Shop_Management_System.Models;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using System.Linq.Expressions;
 
 namespace BE__Small_Shop_Management_System.Repositories
 {
@@ -54,6 +55,22 @@ namespace BE__Small_Shop_Management_System.Repositories
                 .OrderByDescending(o => o.OrderDate)
                 .ProjectTo<OrderHistoryDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
+        }
+
+        // Thay đổi trạng thái của đơn hàng
+        public async Task<Order?> GetAsync(Expression<Func<Order, bool>> predicate, string? includeProperties = null)
+        {
+            IQueryable<Order> query = _context.Orders;
+
+            if (!string.IsNullOrWhiteSpace(includeProperties))
+            {
+                foreach (var includeProp in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeProp.Trim());
+                }
+            }
+
+            return await query.FirstOrDefaultAsync(predicate);
         }
     }
 }

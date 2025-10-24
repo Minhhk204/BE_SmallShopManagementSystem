@@ -16,29 +16,30 @@ namespace BE__Small_Shop_Management_System.DataContext
         public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<PasswordPolicy> PasswordPolicies { get; set; }
 
-        // ==== Bảng RefreshToken ====
+        // ==== Refresh Token ====
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
-        // ==== Bảng sản phẩm & kho ====
+        // ==== Sản phẩm & kho ====
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<InventoryHistory> InventoryHistories { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
+        public DbSet<InventoryHistory> InventoryHistories { get; set; }
 
-        // ==== Bảng giỏ hàng & đơn hàng ====
+        // ==== Giỏ hàng & đơn hàng ====
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Payment> Payments { get; set; }
 
-        // ==== Bảng log hệ thống ====
+        // ==== Log hệ thống ====
         public DbSet<SystemLog> SystemLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             DbSeeder.Seed(modelBuilder);
-            // ==== User - Role (N-N) - QUAN TRỌNG: Sửa lỗi cascade ====
+
+            // ==== User - Role (N-N) ====
             modelBuilder.Entity<UserRole>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });
 
@@ -53,7 +54,6 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
 
             // ==== Role - Permission (N-N) ====
             modelBuilder.Entity<RolePermission>()
@@ -71,12 +71,6 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(rp => rp.PermissionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<RolePermission>()
-                .HasOne(rp => rp.Role)
-                .WithMany(r => r.RolePermissions)
-                .HasForeignKey(rp => rp.RoleId)
-                .OnDelete(DeleteBehavior.Cascade); 
-
             // ==== User - Permission (N-N) ====
             modelBuilder.Entity<UserPermission>()
                 .HasKey(up => new { up.UserId, up.PermissionId });
@@ -93,18 +87,19 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(up => up.PermissionId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // ==== Favorite: unique (UserId, ProductId) ====
             modelBuilder.Entity<Favorite>()
                 .HasIndex(f => new { f.UserId, f.ProductId })
                 .IsUnique();
 
-            // ==== Order -> User ====
+            // ==== Order - User (1-N) ====
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)              // đổi Customer -> User
-                .WithMany(u => u.Orders)          // 1 User có nhiều Order
-                .HasForeignKey(o => o.UserId)     // đổi CustomerId -> UserId
+                .HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ==== OrderItem (Order <-> Product) ====
+            // ==== OrderItem - Order / Product ====
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
@@ -117,44 +112,52 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(oi => oi.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // ==== Payment -> Order (1-1) ====
+            // ==== Payment - Order (1-1) ====
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Order)
                 .WithOne(o => o.Payment)
                 .HasForeignKey<Payment>(p => p.OrderId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // ==== CartItem (User <-> Product) ====
+            // ==== CartItem - User / Product ====
             modelBuilder.Entity<CartItem>()
-                .HasOne(c => c.User)              // đổi Customer -> User
-                .WithMany()                       // nếu chưa cần navigation property bên User
-                .HasForeignKey(c => c.UserId)     // đổi CustomerId -> UserId
+                .HasOne(c => c.User)
+                .WithMany(u => u.CartItems)
+                .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<CartItem>()
                 .HasOne(c => c.Product)
-                .WithMany()
+                .WithMany(p => p.CartItems)
                 .HasForeignKey(c => c.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // ==== InventoryHistory -> Product ====
+            // ==== InventoryHistory - Product ====
             modelBuilder.Entity<InventoryHistory>()
                 .HasOne(ih => ih.Product)
-                .WithMany()
+                .WithMany(p => p.InventoryHistories)
                 .HasForeignKey(ih => ih.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-
+            // ==== Product - Category ====
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            base.OnModelCreating(modelBuilder);
+            // ==== DECIMAL precision fix ====
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasColumnType("decimal(18,2)");
 
+            modelBuilder.Entity<OrderItem>()
+                .Property(oi => oi.Price)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TotalAmount)
+                .HasColumnType("decimal(18,2)");
         }
     }
-
-}   
-
+}
