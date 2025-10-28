@@ -82,7 +82,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== PAGED ==================
         [HttpGet("paged")]
-        //[Authorize(Policy = PermissionConstants.Products.View)]
+        [Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> GetPaged(
              [FromQuery] decimal? minPrice,
              [FromQuery] decimal? maxPrice,
@@ -350,7 +350,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
         // ================== GET FEATURED PRODUCTS ==================
         [HttpGet("featured")]
-        //[Authorize(Policy = PermissionConstants.Products.View)] //
+        [Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> GetFeaturedProducts()
         {
             try

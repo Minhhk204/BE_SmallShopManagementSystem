@@ -5,6 +5,8 @@ using BE__Small_Shop_Management_System.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using BE__Small_Shop_Management_System.Models;
+using Microsoft.AspNetCore.Authorization;
+using BE__Small_Shop_Management_System.Constants;
 
 namespace BE__Small_Shop_Management_System.Controllers
 {
@@ -21,6 +23,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Lấy tất cả category kèm product
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.Categories.View)]
         public async Task<IActionResult> GetAllCategories()
         {
             try
@@ -41,6 +44,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Lấy chi tiết 1 category theo id
         [HttpGet("{id}")]
+        [Authorize(Policy = PermissionConstants.Categories.View)]
         public async Task<IActionResult> GetCategoryById(int id)
         {
             try
@@ -64,6 +68,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Tạo mới category
         [HttpPost]
+        [Authorize(Policy = PermissionConstants.Categories.Create)]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto createDto)
         {
             try
@@ -98,6 +103,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Cập nhật category
         [HttpPut("{id}")]
+        [Authorize (Policy = PermissionConstants.Categories.Update)]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryDto updateDto)
         {
             try
@@ -139,6 +145,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpGet("{id}/check-products")]
+        [Authorize(Policy = PermissionConstants.Categories.View)]
         public async Task<IActionResult> CheckProducts(int id)
         {
             if (id <= 0)
@@ -154,6 +161,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpPost("move-products")]
+        [Authorize(Policy = PermissionConstants.Categories.Update)]
         public async Task<IActionResult> MoveProducts([FromBody] MoveProductsDto dto)
         {
             if (dto.FromCategoryId <= 0 || dto.ToCategoryId <= 0)
@@ -185,6 +193,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Xóa category
         [HttpDelete("{id}")]
+        [Authorize(Policy = PermissionConstants.Categories.Delete)]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             if (id <= 0)

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
@@ -24,6 +25,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.Favorites.View)]
         public async Task<IActionResult> GetFavorites()
         {
             try
@@ -66,6 +68,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Thêm sản phẩm vào yêu thích
         [HttpPost("{productId}")]
+        [Authorize(Policy = PermissionConstants.Favorites.Add)]
         public async Task<IActionResult> AddFavorite(int productId)
         {
             try
@@ -98,6 +101,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Xóa sản phẩm khỏi yêu thích
         [HttpDelete("{productId}")]
+        [Authorize(Policy = PermissionConstants.Favorites.Delete)]
         public async Task<IActionResult> RemoveFavorite(int productId)
         {
             try

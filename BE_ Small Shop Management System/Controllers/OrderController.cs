@@ -1,4 +1,5 @@
-﻿using BE__Small_Shop_Management_System.DTOs;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.UnitOfWork;
@@ -24,6 +25,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Tạo đơn hàng từ giỏ
         [HttpPost("checkout")]
+        [Authorize(Policy = PermissionConstants.Orders.Create)]
         public async Task<IActionResult> Checkout()
         {
             try
@@ -67,6 +69,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Lấy danh sách đơn hàng của user
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.Orders.View)]
         public async Task<IActionResult> GetOrders()
         {
             try
@@ -86,6 +89,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
         //Lịch sử mua hàng của user
         [HttpGet("history/{userId}")]
+        [Authorize(Policy = PermissionConstants.Orders.View)]
         public async Task<IActionResult> GetOrderHistory(int userId)
         {
             try
@@ -108,6 +112,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Cập nhật trạng thái đơn hàng 
         [HttpPut("{orderId}/status")]
+        [Authorize(Policy = PermissionConstants.Orders.Update)]
         public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
         {
             try

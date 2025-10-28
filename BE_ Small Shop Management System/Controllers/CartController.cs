@@ -1,4 +1,5 @@
-﻿using BE__Small_Shop_Management_System.DTOs;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.UnitOfWork;
@@ -23,6 +24,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Lấy giỏ hàng
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.Cart.View)]
         public async Task<IActionResult> GetCart()
         {
             try
@@ -59,6 +61,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Thêm vào giỏ hàng
         [HttpPost("{productId}")]
+        [Authorize(Policy = PermissionConstants.Cart.Add)]
         public async Task<IActionResult> AddToCart(int productId, [FromQuery] int quantity = 1)
         {
             try
@@ -93,6 +96,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Xóa sản phẩm khỏi giỏ
         [HttpDelete("{productId}")]
+        [Authorize(Policy = PermissionConstants.Cart.Delete)]
         public async Task<IActionResult> RemoveFromCart(int productId)
         {
             try

@@ -1,4 +1,5 @@
-﻿using BE__Small_Shop_Management_System.DTOs;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.Repositories;
 using BE__Small_Shop_Management_System.UnitOfWork;
@@ -23,7 +24,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = PermissionConstants.SystemLogs.View)]
         public async Task<ActionResult<IEnumerable<SystemLogDto>>> GetAll()
         {
             var logs = await _unitOfWork.SystemLogRepository.GetAllAsync();
@@ -46,7 +47,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = PermissionConstants.SystemLogs.View)]
         public async Task<ActionResult<SystemLogDto>> GetById(int id)
         {
             var log = await _unitOfWork.SystemLogRepository.GetByIdAsync(id);
@@ -71,7 +72,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpGet("paged")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = PermissionConstants.SystemLogs.View)]
         public async Task<IActionResult> GetPaged([FromQuery] SystemLogFilterRequest filter,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 20)
@@ -138,7 +139,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             return Ok(result);
         }
         [HttpDelete("xóa 1 hoặc nhiều theo id")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = PermissionConstants.SystemLogs.Delete)]
         public async Task<IActionResult> DeleteRange([FromBody] List<int> ids)
         {
             var logs = await _unitOfWork.SystemLogRepository.FindAsync(l => ids.Contains(l.Id));
@@ -154,7 +155,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
 
         [HttpDelete("clear-all")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = PermissionConstants.SystemLogs.Delete)]
         public async Task<IActionResult> ClearAll()
         {
             var logs = await _unitOfWork.SystemLogRepository.GetAllAsync();
@@ -166,7 +167,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
 
         [HttpDelete("clear-old")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = PermissionConstants.SystemLogs.Delete)]
         public async Task<IActionResult> ClearOldLogs([FromQuery] int days = 30)
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-days);

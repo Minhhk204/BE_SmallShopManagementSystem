@@ -36,7 +36,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== GET PERMISSIONS ==================
         [HttpGet("{userId}/permissions")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = PermissionConstants.Permissions.View)]
         public async Task<IActionResult> GetPermissionsOfUser(int userId)
         {
             try
@@ -55,7 +55,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== ASSIGN PERMISSIONS ==================
         [HttpPost("{userId}/assign-permissions")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = PermissionConstants.Permissions.Update)]
         public async Task<IActionResult> AssignPermissionsToUser(int userId, [FromBody] AssignPermissionsRequest request)
         {
             try
@@ -131,7 +131,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpPut("{id}/activate")]
-        [Authorize(Policy = PermissionConstants.Users.Lock)]
+        [Authorize(Policy = PermissionConstants.Users.Unlock)]
         public async Task<IActionResult> Activate(int id)
         {
             try
@@ -152,6 +152,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== GET ALL ==================
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -167,6 +168,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -184,6 +186,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== PAGING ==================
         [HttpGet("paged")]
+        [Authorize(Policy = PermissionConstants.Users.View)]
         public async Task<IActionResult> GetPaged(
             [FromQuery] bool? isActive,
             [FromQuery] string? email,

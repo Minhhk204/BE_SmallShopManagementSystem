@@ -1,6 +1,8 @@
-﻿using BE__Small_Shop_Management_System.DTOs;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.UnitOfWork;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +21,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Tổng quan nhanh (summary cards)
         [HttpGet("summary")]
+        [Authorize(Policy = PermissionConstants.Dashboard.View)]
         public async Task<IActionResult> GetSummary()
         {
             // Chỉ tính đơn hàng đã hoàn tất
@@ -45,6 +48,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Biểu đồ tổng quan (theo thời gian)
         [HttpGet("overview")]
+        [Authorize(Policy = PermissionConstants.Dashboard.Analyze)]
         public async Task<IActionResult> GetOverview([FromQuery] string range = "month")
         {
             var now = DateTime.Now;
@@ -85,6 +89,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Biểu đồ Doanh thu vs Chi phí
         [HttpGet("revenue-vs-cost")]
+        [Authorize(Policy = PermissionConstants.Dashboard.Analyze)]
         public async Task<IActionResult> GetRevenueVsCost([FromQuery] string range = "month")
         {
             var now = DateTime.Now;
@@ -125,6 +130,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Top 5 sản phẩm bán chạy nhất (chỉ tính từ đơn đã hoàn tất)
         [HttpGet("top-products")]
+        [Authorize(Policy = PermissionConstants.Dashboard.Analyze)]
         public async Task<IActionResult> GetTopProducts()
         {
             // Lấy ProductId từ OrderItem trong các Order hoàn tất
@@ -183,6 +189,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Tóm tắt đơn hàng theo trạng thái (giữ nguyên)
         [HttpGet("order-summary")]
+        [Authorize(Policy = PermissionConstants.Dashboard.Analyze)]
         public async Task<IActionResult> GetOrderSummary()
         {
             var summary = await _unitOfWork.OrderRepository.Query()

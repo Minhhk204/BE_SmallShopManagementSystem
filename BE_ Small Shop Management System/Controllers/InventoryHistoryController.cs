@@ -1,7 +1,9 @@
-﻿using BE__Small_Shop_Management_System.DTOs;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.UnitOfWork;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +22,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== GET PAGED ==================
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.InventoryHistory.View)]
         public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
         {
             pageNumber = pageNumber <= 0 ? 1 : pageNumber;
@@ -62,6 +65,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== GET BY PRODUCT ==================
         [HttpGet("product/{productId}")]
+        [Authorize(Policy = PermissionConstants.InventoryHistory.View)]
         public async Task<IActionResult> GetByProduct(int productId)
         {
             var histories = await _unitOfWork.InventoryHistoryRepository.Query()
@@ -80,6 +84,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // ================== IMPORT ==================
         [HttpPost("import")]
+        [Authorize(Policy = PermissionConstants.InventoryHistory.Import)]
         public async Task<IActionResult> Import([FromBody] InventoryHistoryCreateDto dto)
         {
             if (dto == null || dto.QuantityChanged <= 0)
