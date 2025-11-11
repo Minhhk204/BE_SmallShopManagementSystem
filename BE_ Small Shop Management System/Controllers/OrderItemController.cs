@@ -1,4 +1,5 @@
-﻿using BE__Small_Shop_Management_System.Helper;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class OrderItemController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -21,6 +22,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Lấy chi tiết item theo Id
         [HttpGet("{id}")]
+        [Authorize(Policy = PermissionConstants.Orders.View)]
         public async Task<IActionResult> GetById(int id)
         {
             try

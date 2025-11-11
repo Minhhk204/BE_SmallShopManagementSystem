@@ -46,7 +46,7 @@ namespace BE__Small_Shop_Management_System.Repositories
         // Gán 1 quyền
         public async Task AssignAsync(int roleId, int permissionId)
         {
-            await AssignAsync(roleId, new[] { permissionId }); // gọi lại hàm nhiều
+            await AssignAsync(roleId, new[] { permissionId }); 
         }
 
         // Xóa 1 quyền

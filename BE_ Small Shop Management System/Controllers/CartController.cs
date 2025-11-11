@@ -1,4 +1,5 @@
-﻿using BE__Small_Shop_Management_System.DTOs;
+﻿using BE__Small_Shop_Management_System.Constants;
+using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.UnitOfWork;
@@ -23,6 +24,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Lấy giỏ hàng
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.Cart.View)]
         public async Task<IActionResult> GetCart()
         {
             try
@@ -43,9 +45,10 @@ namespace BE__Small_Shop_Management_System.Controllers
                         ProductName = ci.Product.Name,
                         Quantity = ci.Quantity,
                         Price = ci.Product.Price,
+                        IsSelected = ci.IsSelected,
                         ImageUrls = ci.Product.Images
-                            .Select(img => $"{baseUrl}{img.ImageUrl}") 
-                            .ToList()
+                            .Select(img => $"{baseUrl}{img.ImageUrl}").ToList()
+
                     });
 
                 return Ok(ApiResponse<IEnumerable<CartItemDto>>.SuccessResponse(result, "Lấy giỏ hàng thành công"));
@@ -58,6 +61,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // Thêm vào giỏ hàng
         [HttpPost("{productId}")]
+        [Authorize(Policy = PermissionConstants.Cart.Create)]
         public async Task<IActionResult> AddToCart(int productId, [FromQuery] int quantity = 1)
         {
             try
@@ -80,11 +84,12 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 var existingCartItem = await _unitOfWork.CartItemRepository
                     .GetCartItemByUserAndProductAsync(userId, productId);
-
+                //Số lượng hiện có trong giỏ
                 int currentQuantityInCart = existingCartItem?.Quantity ?? 0;
+                //Số lượng sau khi thêm mới
                 int totalQuantityAfterAdd = currentQuantityInCart + quantity;
 
-                // Kiểm tra nếu số lượng vượt quá tồn kho
+                
                 if (totalQuantityAfterAdd > product.Stock)
                 {
                     int availableToAdd = product.Stock - currentQuantityInCart;
@@ -92,7 +97,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                         return BadRequest(ApiResponse<string>.ErrorResponse("Số lượng trong giỏ đã đạt giới hạn tồn kho"));
                 }
 
-                // Thêm hoặc cập nhật giỏ hàng
+             
                 await _unitOfWork.CartItemRepository.AddOrUpdateCartItemAsync(userId, productId, quantity);
                 await _unitOfWork.CompleteAsync();
 
@@ -109,12 +114,11 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                // Lấy userId từ token
                 var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!int.TryParse(userIdClaim, out var userId))
                     return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
 
-                // Cập nhật trạng thái chọn sản phẩm
+                
                 await _unitOfWork.CartItemRepository.UpdateSelectionAsync(userId, productId, isSelected);
                 await _unitOfWork.CompleteAsync();
 
@@ -154,6 +158,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Xóa sản phẩm khỏi giỏ
         [HttpDelete("{productId}")]
+        [Authorize(Policy = PermissionConstants.Cart.Delete)]
         public async Task<IActionResult> RemoveFromCart(int productId)
         {
             try

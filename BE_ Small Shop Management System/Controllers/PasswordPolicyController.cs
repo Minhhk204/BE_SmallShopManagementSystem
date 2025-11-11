@@ -2,6 +2,7 @@
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
 using BE__Small_Shop_Management_System.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,6 +21,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // GET: api/PasswordPolicy
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPolicy()
         {
             try
@@ -35,6 +37,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // PUT: api/PasswordPolicy
         [HttpPut]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdatePolicy([FromBody] PasswordPolicyDto dto)
         {
             try
@@ -50,6 +53,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         // POST: api/PasswordPolicy/validate
         [HttpPost("validate")]
+        [Authorize(Roles = "Admin")]
         public IActionResult ValidatePassword([FromBody] string password)
         {
             try

@@ -45,22 +45,48 @@
             public const string Create = "Orders.Create";
             public const string Update = "Orders.Update";
             public const string Delete = "Orders.Delete";
-            public const string Process = "Orders.Process";
             public static readonly string Module = "Orders";
         }
-
-        public static class Inventory
+        public static class  Cart
         {
-            public const string View = "Inventory.View";
-            public const string Import = "Inventory.Import";
-            public static readonly string Module = "Inventory";
+            public const string View = "Cart.View";
+            public const string Create = "Cart.Create";
+            public const string Update = "Cart.Update";
+            public const string Delete = "Cart.Delete";
+            public static readonly string Module = "Cart";
         }
-
-        public static class Reports
+        public static class Categories
         {
-            public const string ViewDashboard = "Reports.ViewDashboard";
-            public static readonly string Module = "Reports";
+            public const string View = "Categories.View";
+            public const string Create = "Categories.Create";
+            public const string Update = "Categories.Update";
+            public const string Delete = "Categories.Delete";
+            public static readonly string Module = "Categories";
         }
+        public static class SystemLogs
+        {
+            public const string View = "SystemLogs.View";
+            public static readonly string Module = "SystemLogs";
+        }
+        public static class Favorites
+        {
+            public const string View = "Favorites.View";
+            public const string Create = "Favorites.Create";
+            public const string Delete = "Favorites.Delete";
+            public static readonly string Module = "Favorites";
+        }
+        //public static class Inventory
+        //{
+        //    public const string View = "Inventory.View";
+        //    public const string Import = "Inventory.Import";
+        //    public static readonly string Module = "Inventory";
+        //}
+
+        //public static class Reports
+        //{
+        //    public const string ViewDashboard = "Reports.ViewDashboard";
+        //    public static readonly string Module = "Reports";
+        //}
 
         // Lấy toàn bộ permission key (tự đăng ký policy/seed DB)
         public static IEnumerable<string> All()

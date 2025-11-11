@@ -12,8 +12,9 @@ namespace BE__Small_Shop_Management_System.Repositories
         public async Task<Favorite?> GetByUserAndProductAsync(int userId, int productId)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Include(f => f.Product)
-                    .ThenInclude(p => p.Images) 
+                .ThenInclude(p => p.Images) 
                 .FirstOrDefaultAsync(f => f.UserId == userId && f.ProductId == productId);
         }
 
@@ -23,7 +24,7 @@ namespace BE__Small_Shop_Management_System.Repositories
             return await _dbSet
                 .Where(f => f.UserId == userId)
                 .Include(f => f.Product)
-                    .ThenInclude(p => p.Images) 
+                .ThenInclude(p => p.Images) 
                 .ToListAsync();
         }
     }

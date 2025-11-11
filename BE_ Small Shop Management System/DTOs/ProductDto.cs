@@ -28,7 +28,15 @@
         // upload nhiều file
         public List<IFormFile>? Files { get; set; }
 
-        // khi update → cho phép client gửi danh sách id ảnh cần xóa
         public List<int>? DeletedImageIds { get; set; }
     }
+    public class ProductBestSellerDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public decimal Price { get; set; }
+        public string Image { get; set; }
+        public int TotalSold { get; set; }
+    }
+
 }

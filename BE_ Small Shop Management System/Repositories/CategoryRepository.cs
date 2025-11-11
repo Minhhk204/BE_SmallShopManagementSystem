@@ -21,6 +21,7 @@ namespace BE__Small_Shop_Management_System.Repositories
             return await _dbSet
                 .Include(c => c.Products)
                 .ProjectTo<CategoryDto>(_mapper.ConfigurationProvider) 
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -34,3 +35,4 @@ namespace BE__Small_Shop_Management_System.Repositories
         }
     }
 }
+

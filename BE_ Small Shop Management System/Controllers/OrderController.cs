@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
@@ -22,8 +23,9 @@ namespace BE__Small_Shop_Management_System.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        //  Tạo đơn hàng (checkout)
+        //  Tạo đơn hàng 
         [HttpPost("checkout")]
+        [Authorize(Policy = PermissionConstants.Orders.Create)]
         public async Task<IActionResult> Checkout()
         {
             try
@@ -32,14 +34,13 @@ namespace BE__Small_Shop_Management_System.Controllers
                 if (!int.TryParse(userIdClaim, out var userId))
                     return Unauthorized(ApiResponse<string>.ErrorResponse("Không xác định được UserId từ token"));
 
-                // Lấy những sản phẩm được chọn trong giỏ hàng
+               
                 var cartItems = await _unitOfWork.CartItemRepository.GetCartByUserAsync(userId);
-                var selectedItems = cartItems.Where(c => c.IsSelected).ToList();
+                var selectedItems = cartItems.Where(c => c.IsSelected==true).ToList();
 
                 if (!selectedItems.Any())
                     return BadRequest(ApiResponse<string>.ErrorResponse("Vui lòng chọn ít nhất một sản phẩm để thanh toán"));
 
-                // Kiểm tra tồn kho
                 foreach (var item in selectedItems)
                 {
                     if (item.Product.Stock < item.Quantity)
@@ -49,7 +50,7 @@ namespace BE__Small_Shop_Management_System.Controllers
                     _unitOfWork.ProductRepository.Update(item.Product);
                 }
 
-                // Tạo đơn hàng
+                
                 var order = new Order
                 {
                     UserId = userId,
@@ -66,7 +67,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
                 await _unitOfWork.OrderRepository.AddAsync(order);
 
-                // Xóa sản phẩm đã chọn khỏi giỏ
+                
                 _unitOfWork.CartItemRepository.DeleteRange(selectedItems);
 
                 await _unitOfWork.CompleteAsync();
@@ -86,7 +87,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         //  Lấy danh sách đơn hàng user
 
         [HttpGet]
-
+        [Authorize(Policy = PermissionConstants.Orders.View)]
         public async Task<IActionResult> GetOrders()
         {
             try
@@ -104,31 +105,31 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
         // cập nhật trạng thái đơn hàng
-        [HttpPut("{orderId}/status")]
-     
-        public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto dto)
-        {
-            try
-            {
-                var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
-                if (order == null)
-                    return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy đơn hàng"));
+        //[HttpPut("{orderId}/status")]
+        //[Authorize(Policy = PermissionConstants.Orders.Update)]
+        //public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto dto)
+        //{
+        //    try
+        //    {
+        //        var order = await _unitOfWork.OrderRepository.GetByIdAsync(orderId);
+        //        if (order == null)
+        //            return NotFound(ApiResponse<string>.ErrorResponse("Không tìm thấy đơn hàng"));
 
-                // Kiểm tra trạng thái hợp lệ
-                var validStatuses = new[] { "Pending", "Paid", "Shipping","Completed" }; 
-                if (!validStatuses.Contains(dto.Status))
-                    return BadRequest(ApiResponse<string>.ErrorResponse("Trạng thái không hợp lệ"));
-                order.Status = dto.Status;
-                _unitOfWork.OrderRepository.Update(order);
-                await _unitOfWork.CompleteAsync();
+        //        // Kiểm tra trạng thái hợp lệ
+        //        var validStatuses = new[] { "Pending", "Paid", "Shipping","Completed" }; 
+        //        if (!validStatuses.Contains(dto.Status))
+        //            return BadRequest(ApiResponse<string>.ErrorResponse("Trạng thái không hợp lệ"));
+        //        order.Status = dto.Status;
+        //        _unitOfWork.OrderRepository.Update(order);
+        //        await _unitOfWork.CompleteAsync();
 
-                var updatedDto = await _unitOfWork.OrderRepository.GetOrderWithItemsAsync(order.Id);
-                return Ok(ApiResponse<OrderDto>.SuccessResponse(updatedDto, $"Cập nhật trạng thái thành công: {dto.Status}"));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
-            }
-        }
+        //        var updatedDto = await _unitOfWork.OrderRepository.GetOrderWithItemsAsync(order.Id);
+        //        return Ok(ApiResponse<OrderDto>.SuccessResponse(updatedDto, $"Cập nhật trạng thái thành công: {dto.Status}"));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ApiResponse<string>.ErrorResponse($"Lỗi server: {ex.Message}", statusCode: 500));
+        //    }
+        //}
     }
 }

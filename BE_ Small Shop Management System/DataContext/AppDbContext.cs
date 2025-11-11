@@ -117,12 +117,6 @@ namespace BE__Small_Shop_Management_System.DataContext
                 .HasForeignKey(oi => oi.ProductId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // ==== Payment -> Order (1-1) ====
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Order)
-                .WithOne(o => o.Payment)
-                .HasForeignKey<Payment>(p => p.OrderId)
-                .OnDelete(DeleteBehavior.NoAction);
 
             // ==== CartItem (User <-> Product) ====
             modelBuilder.Entity<CartItem>()

@@ -30,7 +30,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //lấy chi tiết sản phẩm theo Id
         [HttpGet("{id}")]
-        [Authorize(Policy = PermissionConstants.Products.View)]
+        //[Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> GetById(int id)
         {
             var product = await _unitOfWork.ProductRepository
@@ -131,7 +131,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //tìm kiếm sản phẩm
         [HttpGet("search")]
-        [Authorize(Policy = PermissionConstants.Products.View)]
+        //[Authorize(Policy = PermissionConstants.Products.View)]
         public async Task<IActionResult> Search(
             [FromQuery] string keyword,
             [FromQuery] int pageNumber = 1,
@@ -176,9 +176,10 @@ namespace BE__Small_Shop_Management_System.Controllers
                      Stock = p.Stock,
                      IsActive = p.IsActive,
                      CategoryName = p.Category?.Name ?? string.Empty,
-                     Image = p.Images != null && p.Images.Any()
-                        ? $"{Request.Scheme}://{Request.Host}{p.Images.First().ImageUrl}"
-                        : null,
+                     Image = p.Images?
+                     .Select(i => $"{Request.Scheme}://{Request.Host}{i.ImageUrl}")
+                        .FirstOrDefault()
+
                  }).ToList();
 
                 var result = new PagedResult<ProductDto>
@@ -198,6 +199,19 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
+        [HttpGet("bestsellersProduct")]
+        public async Task<IActionResult> GetBestSellersProducts()
+        {
+            try
+            {
+                var products = await _unitOfWork.ProductRepository.GetBestSellingProductsAsync(5);
+                return Ok(ApiResponse<IEnumerable<ProductBestSellerDto>>.SuccessResponse(products, "Thống kê sản phẩm bán chạy thành công"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.ErrorResponse("Lỗi khi lấy sản phẩm bán chạy", new[] { ex.Message }, 500));
+            }
+        }
         //thêm mới sản phẩm
         [HttpPost]
         [Authorize(Policy = PermissionConstants.Products.Create)]
@@ -275,7 +289,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
             await _unitOfWork.CompleteAsync();
 
-            // Trả về DTO kết quả
+           
             var resultDto = new ProductDto
             {
                 Id = product.Id,

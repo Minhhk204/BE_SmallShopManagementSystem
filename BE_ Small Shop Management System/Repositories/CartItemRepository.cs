@@ -8,7 +8,7 @@ namespace BE__Small_Shop_Management_System.Repositories
     {
         public CartItemRepository(AppDbContext context) : base(context) { }
 
-        // Lấy CartItem theo user và product, kèm product + ảnh
+        // Lấy CartItem theo user và product
         public async Task<CartItem?> GetByUserAndProductAsync(int userId, int productId)
         {
             return await _dbSet
@@ -17,7 +17,7 @@ namespace BE__Small_Shop_Management_System.Repositories
                 .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
         }
 
-        // Lấy tất cả CartItem của user, kèm product + ảnh
+        // Lấy tất cả CartItem của user
         public async Task<IEnumerable<CartItem>> GetCartByUserAsync(int userId)
         {
             return await _dbSet
@@ -87,9 +87,8 @@ namespace BE__Small_Shop_Management_System.Repositories
             if (cartItem == null)
             {
                 if (quantity == 0)
-                    return true; // Không làm gì nếu set = 0 mà chưa có
+                    return true; 
 
-                // Thêm mới nếu chưa có
                 var newItem = new CartItem
                 {
                     UserId = userId,

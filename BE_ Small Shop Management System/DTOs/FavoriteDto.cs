@@ -6,6 +6,7 @@
         public string ProductName { get; set; } = null!;
         public List<string> ImageUrls { get; set; } = new();
         public DateTime CreatedAt { get; set; }
+        public decimal ProductPrice { get; set; }
         public ProductDto Product { get; set; }
     }
 }

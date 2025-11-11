@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using BE__Small_Shop_Management_System.Constants;
 using BE__Small_Shop_Management_System.DTOs;
 using BE__Small_Shop_Management_System.Helper;
 using BE__Small_Shop_Management_System.Models;
@@ -11,7 +12,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // bắt buộc đăng nhập mới thao tác được
+    [Authorize] 
     public class FavoriteController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -24,6 +25,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = PermissionConstants.Favorites.View)]
         public async Task<IActionResult> GetFavorites()
         {
             try
@@ -40,20 +42,10 @@ namespace BE__Small_Shop_Management_System.Controllers
                 {
                     ProductId = f.ProductId,
                     ProductName = f.Product.Name,
+                    ProductPrice = f.Product.Price,
                     ImageUrls = f.Product.Images.Select(img => $"{baseUrl}{img.ImageUrl}").ToList(),
                     CreatedAt = f.CreatedAt,
-                    Product = new ProductDto
-                    {
-                        Id = f.Product.Id,
-                        Name = f.Product.Name,
-                        Description = f.Product.Description,
-                        Price = f.Product.Price,
-                        Stock = f.Product.Stock,
-                        ImageUrls = f.Product.Images
-                        .Select(img => $"{baseUrl}{img.ImageUrl}")
-                        .ToList(),
-                        CategoryName = f.Product.Category != null ? f.Product.Category.Name : ""
-                    }
+                   
                 }).ToList();
 
                 return Ok(ApiResponse<IEnumerable<FavoriteDto>>.SuccessResponse(favoriteDtos, "Lấy danh sách yêu thích thành công"));
@@ -68,6 +60,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Thêm sản phẩm vào yêu thích
         [HttpPost("{productId}")]
+        [Authorize(Policy = PermissionConstants.Favorites.Create)]
         public async Task<IActionResult> AddFavorite(int productId)
         {
             try
@@ -100,6 +93,7 @@ namespace BE__Small_Shop_Management_System.Controllers
 
         //Xóa sản phẩm khỏi yêu thích
         [HttpDelete("{productId}")]
+        [Authorize(Policy = PermissionConstants.Favorites.Delete)]
         public async Task<IActionResult> RemoveFavorite(int productId)
         {
             try

@@ -1,4 +1,5 @@
-﻿using BE__Small_Shop_Management_System.Models;
+﻿using BE__Small_Shop_Management_System.DTOs;
+using BE__Small_Shop_Management_System.Models;
 
 namespace BE__Small_Shop_Management_System.Repositories
 {
@@ -6,6 +7,7 @@ namespace BE__Small_Shop_Management_System.Repositories
     {
         IQueryable<Product> GetProductsWithCategory();
         Task<Product?> GetByIdWithCategoryAsync(int id);
+        Task<IEnumerable<ProductBestSellerDto>> GetBestSellingProductsAsync(int top = 5);
 
     }
 }

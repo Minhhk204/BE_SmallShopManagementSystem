@@ -1,6 +1,5 @@
 ﻿namespace BE__Small_Shop_Management_System.Services
 {
-   
         public class FileUploadService
         {
             private readonly IWebHostEnvironment _env;
@@ -18,7 +17,7 @@
                     return result;
 
                 var allowedExt = new HashSet<string> { ".jpg", ".jpeg", ".png", ".webp" };
-                long maxBytes = 5 * 1024 * 1024; // 5MB
+                long maxBytes = 5 * 1024 * 1024; 
 
                 // Đường dẫn thư mục lưu ảnh (vd: wwwroot/images/products)
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "images", folder);
@@ -50,5 +49,5 @@
                 return result;
             }
         }
-    }
+   }
 

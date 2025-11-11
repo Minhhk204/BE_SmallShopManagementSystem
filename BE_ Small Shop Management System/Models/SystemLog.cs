@@ -8,10 +8,10 @@
         public User? User { get; set; }
 
         public string Method { get; set; } = "";   // GET, POST, PUT, DELETE
-        public string Path { get; set; } = "";      // /api/SystemLogs/paged
-        public int StatusCode { get; set; }                  // 200, 400, 401, 500
+        public string Path { get; set; } = "";      
+        public int StatusCode { get; set; }                 
 
-        public string? Action { get; set; } = "";                // Ví dụ: "Cập nhật User"
+        public string? Action { get; set; } = "";              
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string? Data { get; set; }
         public double Duration { get; set; }

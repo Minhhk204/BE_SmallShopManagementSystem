@@ -4,6 +4,7 @@ using BE__Small_Shop_Management_System.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BE__Small_Shop_Management_System.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251018184815_updatePermissionContant")]
+    partial class updatePermissionContant
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,7 +282,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9340),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3848),
                             Description = "Xem danh sách người dùng",
                             Module = "Người dùng",
                             Name = "Users.View"
@@ -287,7 +290,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9488),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3879),
                             Description = "Tạo mới người dùng",
                             Module = "Người dùng",
                             Name = "Users.Create"
@@ -295,7 +298,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9510),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3885),
                             Description = "Cập nhật thông tin người dùng",
                             Module = "Người dùng",
                             Name = "Users.Update"
@@ -303,7 +306,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9526),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3890),
                             Description = "Xóa người dùng",
                             Module = "Người dùng",
                             Name = "Users.Delete"
@@ -311,7 +314,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9541),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3895),
                             Description = "Khóa tài khoản người dùng",
                             Module = "Người dùng",
                             Name = "Users.Lock"
@@ -319,7 +322,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9651),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3901),
                             Description = "Mở khóa tài khoản người dùng",
                             Module = "Người dùng",
                             Name = "Users.Unlock"
@@ -327,7 +330,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9679),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3909),
                             Description = "Xem danh sách vai trò",
                             Module = "Vai trò",
                             Name = "Roles.View"
@@ -335,7 +338,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9695),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3914),
                             Description = "Tạo mới vai trò",
                             Module = "Vai trò",
                             Name = "Roles.Create"
@@ -343,7 +346,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9717),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3952),
                             Description = "Cập nhật vai trò",
                             Module = "Vai trò",
                             Name = "Roles.Update"
@@ -351,7 +354,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 10,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9734),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3958),
                             Description = "Xóa vai trò",
                             Module = "Vai trò",
                             Name = "Roles.Delete"
@@ -359,7 +362,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 11,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9754),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3966),
                             Description = "Xem danh sách quyền",
                             Module = "Quyền",
                             Name = "Permissions.View"
@@ -367,7 +370,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 12,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9770),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3972),
                             Description = "Xóa quyền",
                             Module = "Quyền",
                             Name = "Permissions.Delete"
@@ -375,7 +378,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 13,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9789),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3978),
                             Description = "Xem danh sách sản phẩm",
                             Module = "Sản phẩm",
                             Name = "Products.View"
@@ -383,7 +386,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 14,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9806),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3983),
                             Description = "Thêm mới sản phẩm",
                             Module = "Sản phẩm",
                             Name = "Products.Create"
@@ -391,7 +394,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 15,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9830),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3988),
                             Description = "Cập nhật sản phẩm",
                             Module = "Sản phẩm",
                             Name = "Products.Update"
@@ -399,7 +402,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 16,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9868),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3992),
                             Description = "Xóa sản phẩm",
                             Module = "Sản phẩm",
                             Name = "Products.Delete"
@@ -407,7 +410,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 17,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9891),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(3999),
                             Description = "Xem danh sách đơn hàng",
                             Module = "Đơn hàng",
                             Name = "Orders.View"
@@ -415,7 +418,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 18,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9907),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4004),
                             Description = "Tạo mới đơn hàng",
                             Module = "Đơn hàng",
                             Name = "Orders.Create"
@@ -423,7 +426,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 19,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9922),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4008),
                             Description = "Cập nhật đơn hàng",
                             Module = "Đơn hàng",
                             Name = "Orders.Update"
@@ -431,7 +434,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 20,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9938),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4012),
                             Description = "Xóa đơn hàng",
                             Module = "Đơn hàng",
                             Name = "Orders.Delete"
@@ -439,7 +442,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 21,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9959),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4020),
                             Description = "Xem giỏ hàng",
                             Module = "Giỏ hàng",
                             Name = "Cart.View"
@@ -447,7 +450,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 22,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9971),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4024),
                             Description = "Thêm sản phẩm vào giỏ hàng",
                             Module = "Giỏ hàng",
                             Name = "Cart.Create"
@@ -455,7 +458,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 23,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9984),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4027),
                             Description = "Cập nhật giỏ hàng",
                             Module = "Giỏ hàng",
                             Name = "Cart.Update"
@@ -463,7 +466,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 24,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 311, DateTimeKind.Utc).AddTicks(9998),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4030),
                             Description = "Xóa sản phẩm khỏi giỏ hàng",
                             Module = "Giỏ hàng",
                             Name = "Cart.Delete"
@@ -471,7 +474,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 25,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 312, DateTimeKind.Utc).AddTicks(17),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4035),
                             Description = "Xem danh mục",
                             Module = "Danh mục",
                             Name = "Categories.View"
@@ -479,7 +482,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 26,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 312, DateTimeKind.Utc).AddTicks(78),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4040),
                             Description = "Tạo danh mục",
                             Module = "Danh mục",
                             Name = "Categories.Create"
@@ -487,7 +490,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 27,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 312, DateTimeKind.Utc).AddTicks(99),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4044),
                             Description = "Cập nhật danh mục",
                             Module = "Danh mục",
                             Name = "Categories.Update"
@@ -495,7 +498,7 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 28,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 312, DateTimeKind.Utc).AddTicks(112),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4049),
                             Description = "Xóa danh mục",
                             Module = "Danh mục",
                             Name = "Categories.Delete"
@@ -503,23 +506,31 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 29,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 312, DateTimeKind.Utc).AddTicks(127),
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4082),
+                            Description = "Xem lịch sử hệ thống",
+                            Module = "Lịch sử hệ thống",
+                            Name = "SystemLogs.View"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4088),
                             Description = "Xem sản phẩm yêu thích",
                             Module = "Sản phẩm yêu thích",
                             Name = "Favorites.View"
                         },
                         new
                         {
-                            Id = 30,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 312, DateTimeKind.Utc).AddTicks(168),
+                            Id = 31,
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4092),
                             Description = "Thêm sản phẩm yêu thích",
                             Module = "Sản phẩm yêu thích",
                             Name = "Favorites.Create"
                         },
                         new
                         {
-                            Id = 31,
-                            CreatedAt = new DateTime(2025, 10, 20, 1, 31, 34, 312, DateTimeKind.Utc).AddTicks(184),
+                            Id = 32,
+                            CreatedAt = new DateTime(2025, 10, 18, 18, 48, 12, 540, DateTimeKind.Utc).AddTicks(4096),
                             Description = "Xóa sản phẩm yêu thích",
                             Module = "Sản phẩm yêu thích",
                             Name = "Favorites.Delete"
@@ -816,6 +827,11 @@ namespace BE__Small_Shop_Management_System.Migrations
                         {
                             RoleId = 1,
                             PermissionId = 31
+                        },
+                        new
+                        {
+                            RoleId = 1,
+                            PermissionId = 32
                         });
                 });
 
@@ -922,13 +938,13 @@ namespace BE__Small_Shop_Management_System.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 20, 8, 31, 34, 312, DateTimeKind.Local).AddTicks(737),
+                            CreatedAt = new DateTime(2025, 10, 19, 1, 48, 12, 540, DateTimeKind.Local).AddTicks(4414),
                             Email = "admin@system.com",
                             FullName = "Nguyen Van Minh",
                             IsActive = true,
                             IsDeleted = false,
                             IsEmailConfirmed = true,
-                            PasswordHash = "$2a$11$9dJENUagOul7GoABcQY2bOLI/n2Nnz6BFQtgUN.z76pb/jqXFPWEq",
+                            PasswordHash = "$2a$11$7J6ahoVOFlVcLUAM4BixOeg/9vYrJLQJ17Xg.Ju1FFBqpEcz4kdq6",
                             PhoneNumber = "0123456789",
                             Username = "admin"
                         });

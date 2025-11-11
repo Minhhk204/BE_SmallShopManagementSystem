@@ -60,7 +60,7 @@ namespace BE__Small_Shop_Management_System.Controllers
         {
             try
             {
-                // Xóa toàn bộ quyền cũ
+    
                 await _unitOfWork.UserPermissionRepository.RemoveAllByUserIdAsync(userId);
 
                 // Thêm lại theo danh sách request (chỉ những cái granted = true)
@@ -178,7 +178,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             [FromQuery] string? atDress,
             [FromQuery] DateTime? createdAt,
             [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 2)
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -320,11 +320,11 @@ namespace BE__Small_Shop_Management_System.Controllers
                     !ValidationHelper.IsValidPhoneNumber(dto.PhoneNumber))
                     return BadRequest(ApiResponse<string>.ErrorResponse("Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)"));
 
-                //Hash password (nếu có)
+               
                 string passwordHash = string.Empty;
                 if (!string.IsNullOrWhiteSpace(dto.Password))
                 {
-                    // Validate theo PasswordPolicy
+                    
                     if (!_passwordPolicyService.ValidatePassword(dto.Password, out var errors))
                         return BadRequest(ApiResponse<string>.ErrorResponse("Mật khẩu không hợp lệ", errors));
 

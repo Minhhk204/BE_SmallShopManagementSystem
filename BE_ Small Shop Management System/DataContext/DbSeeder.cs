@@ -15,6 +15,10 @@ namespace BE__Small_Shop_Management_System.DataContext
                 { "Permissions", "Quyền" },
                 { "Products", "Sản phẩm" },
                 { "Orders", "Đơn hàng" },
+                { "Cart", "Giỏ hàng" },
+                { "Categories", "Danh mục" },
+                { "Favorites", "Sản phẩm yêu thích" },
+                { "SystemLogs", "Lịch sử hệ thống" },
                 { "Inventory", "Kho" },
                 { "Reports", "Báo cáo" }
             };
@@ -45,6 +49,23 @@ namespace BE__Small_Shop_Management_System.DataContext
                 { "Orders.Update", "Cập nhật đơn hàng" },
                 { "Orders.Delete", "Xóa đơn hàng" },
                 { "Orders.Process", "Xử lý đơn hàng" },
+
+                            { "Cart.View", "Xem giỏ hàng" },
+                            { "Cart.Create", "Thêm sản phẩm vào giỏ hàng" },
+                            { "Cart.Update", "Cập nhật giỏ hàng" },
+                            { "Cart.Delete", "Xóa sản phẩm khỏi giỏ hàng" },
+
+                            { "Categories.View", "Xem danh mục" },
+                            { "Categories.Create", "Tạo danh mục" },
+                            { "Categories.Update", "Cập nhật danh mục" },
+                            { "Categories.Delete", "Xóa danh mục" },
+
+                            {"Favorites.View","Xem sản phẩm yêu thích" },
+                            { "Favorites.Create", "Thêm sản phẩm yêu thích" },
+                            { "Favorites.Delete", "Xóa sản phẩm yêu thích" },
+
+                            {"SystemLogs.View", "Xem lịch sử hệ thống"},
+
 
                 { "Inventory.View", "Xem tồn kho" },
                 { "Inventory.Import", "Nhập kho" },

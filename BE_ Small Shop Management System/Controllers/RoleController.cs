@@ -83,7 +83,7 @@ namespace BE__Small_Shop_Management_System.Controllers
             }
         }
 
-        // ===== READ ALL =====
+         //===== READ ALL =====
         [HttpGet]
         [Authorize(Policy = PermissionConstants.Roles.View)]
         public async Task<IActionResult> GetAll()

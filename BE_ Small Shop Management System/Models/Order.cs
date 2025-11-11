@@ -10,7 +10,6 @@
 
         // Quan hệ
         public User User { get; set; } = null!;
-        public Payment Payment { get; set; }   // add this if missing
 
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
